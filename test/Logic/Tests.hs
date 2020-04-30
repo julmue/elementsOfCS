@@ -8,6 +8,7 @@ import Test.Tasty.SmallCheck as SC
 import Test.Tasty.HUnit
 
 import Logic
+import Data.Bool (Bool(..))
 
 import Prelude (($))
 

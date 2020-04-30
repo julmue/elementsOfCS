@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0628bb547badc9db7ffcc9aed06c438e387c6133a32c008319f12c227ea1dfbe
+-- hash: b27b27973318094f248c819fff90d1aaa6ae16bb02219fd688eb101788767800
 
 name:           elementsOfCS
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Arithmetic
       Lib
       Logic
   other-modules:
@@ -53,6 +54,7 @@ test-suite elementsOfCS-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Arithmetic.Tests
       Logic.Tests
       Paths_elementsOfCS
   hs-source-dirs:
