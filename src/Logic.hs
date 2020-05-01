@@ -39,13 +39,12 @@ module Logic (
     ) where
 
 import Prelude hiding (not, and, or)
-import Data.Bool (Bool(True, False))
 
 nand :: Bit -> Bit -> Bit
-nand True True = False
-nand True False = True
-nand False True = True
-nand False False = True
+nand I I = O
+nand I O = I
+nand O I = I
+nand O O = I
 
 not :: Bit -> Bit
 not a = nand a a
@@ -59,21 +58,23 @@ or a b = nand (not a) (not b)
 xor :: Bit -> Bit -> Bit
 xor a b = ((not a) `and` b) `or` (a `and` (not b)) 
 
--- if sel=False then out=a else out=b
+-- if sel=O then out=a else out=b
 mux :: Bit -> Bit -> Bit -> Bit
 mux a b sel = (a `and` (not sel)) `or` (b `and` sel) 
 
 -- if sel=0 
--- then (a=p, b=False)
--- else (a=False, b=p)
+-- then (a=p, b=O)
+-- else (a=O, b=p)
 dmux :: Bit -> Bit -> (Bit, Bit)
 dmux p sel = let
-    a = mux p False sel
-    b = mux p False (not sel)
+    a = mux p O sel
+    b = mux p O (not sel)
     in (a, b)
 
 {- multi bit arrays "buses" -}
-type Bit = Bool
+-- type Bit = Bool
+data Bit = I | O deriving (Show, Read, Eq)
+
 
 type Bit2 = (
     Bit, 
@@ -253,8 +254,8 @@ dmux8Way _in (sel1, sel2, sel3) =
 -- helpers
 
 bit :: Char -> Bit
-bit '1' = True
-bit '0' = False
+bit '1' = I
+bit '0' = O
 
 bit2 :: String -> Bit2
 bit2 s = 

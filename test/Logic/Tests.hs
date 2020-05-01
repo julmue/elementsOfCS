@@ -8,7 +8,6 @@ import Test.Tasty.SmallCheck as SC
 import Test.Tasty.HUnit
 
 import Logic
-import Data.Bool (Bool(..))
 
 import Prelude (($))
 
@@ -22,72 +21,72 @@ logicTests = testGroup "logicTests" [
     ]
 
 notTests = testGroup "notTests" [
-      testCase "not True" $ 
-        not True @=? False
-    , testCase "not False" $ 
-        not False @=? True
+      testCase "not I" $ 
+        not I @=? O
+    , testCase "not O" $ 
+        not O @=? I
     ]
 
 andTests = testGroup "andTests" [
-      testCase "and True True" $
-        and True True @=? True
-    , testCase "and True False" $
-        and True False @=? False
-    , testCase "and False True" $
-        and False True @=? False
-    , testCase "and False False" $
-        and False False @=? False
+      testCase "and I I" $
+        and I I @=? I
+    , testCase "and I O" $
+        and I O @=? O
+    , testCase "and O I" $
+        and O I @=? O
+    , testCase "and O O" $
+        and O O @=? O
     ]
 
 orTests = testGroup "orTests" [
-      testCase "or True True" $
-        or True True @=? True
-    , testCase "or False True" $
-        or False True @=? True
-    , testCase "or True False" $
-        or True False @=? True
-    , testCase "or False False" $
-        or False False @=? False
+      testCase "or I I" $
+        or I I @=? I
+    , testCase "or O I" $
+        or O I @=? I
+    , testCase "or I O" $
+        or I O @=? I
+    , testCase "or O O" $
+        or O O @=? O
     ]
 
 xorTests = testGroup "xorTests" [
-      testCase "xor True True" $
-        xor True True @=? False
-    , testCase "xor False True" $
-        xor False True @=? True
-    , testCase "xor True False" $
-        xor True False @=? True
-    , testCase "xor False False" $
-        xor False False @=? False
+      testCase "xor I I" $
+        xor I I @=? O
+    , testCase "xor O I" $
+        xor O I @=? I
+    , testCase "xor I O" $
+        xor I O @=? I
+    , testCase "xor O O" $
+        xor O O @=? O
     ]
 
 muxTests = testGroup "muxTests" [
-      testCase "mux True True False" $
-        mux True True False @=? True
-    , testCase "mux True False False" $
-        mux True False False @=? True
-    , testCase "mux False True False" $
-        mux False True False @=? False
-    , testCase "mux False False False" $
-        mux False False False @=? False
+      testCase "mux I I O" $
+        mux I I O @=? I
+    , testCase "mux I O O" $
+        mux I O O @=? I
+    , testCase "mux O I O" $
+        mux O I O @=? O
+    , testCase "mux O O O" $
+        mux O O O @=? O
 
-    , testCase "mux True True True" $
-        mux True True True @=? True
-    , testCase "mux True False True" $
-        mux True False True @=? False
-    , testCase "mux False True True" $
-        mux False True True @=? True
-    , testCase "mux False False True" $
-        mux False False True @=? False
+    , testCase "mux I I I" $
+        mux I I I @=? I
+    , testCase "mux I O I" $
+        mux I O I @=? O
+    , testCase "mux O I I" $
+        mux O I I @=? I
+    , testCase "mux O O I" $
+        mux O O I @=? O
     ]
 
 dmuxTests = testGroup "dmuxTests" [
-      testCase "dmux True True" $
-        dmux True True @=? (False, True)
-    , testCase "dmux False True" $
-        dmux False True @=? (False, False)
-    , testCase "dmux True False" $
-        dmux True False @=? (True, False)
-    , testCase "dmux True False" $
-        dmux False False @=? (False, False) 
+      testCase "dmux I I" $
+        dmux I I @=? (O, I)
+    , testCase "dmux O I" $
+        dmux O I @=? (O, O)
+    , testCase "dmux I O" $
+        dmux I O @=? (I, O)
+    , testCase "dmux I O" $
+        dmux O O @=? (O, O) 
     ]

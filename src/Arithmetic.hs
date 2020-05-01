@@ -5,7 +5,6 @@ module Arithmetic (
 
 import Prelude(undefined)
 import Logic
-import Data.Bool (Bool(..))
 
 -- LSB = least significant bit
 -- MSB = most significant bit
@@ -43,3 +42,20 @@ fullAdder a b c =
     let (carry, sum) = halfAdder a b
         (carry', sum') = halfAdder c sum
     in (carry' `or` carry, sum')
+
+add16 :: Bit16 -> Bit16 -> Bit16
+add16 = undefined
+
+inc16 :: Bit16 -> Bit16
+inc16 = undefined
+
+-- overflow is neither detected nor handled
+alu :: Bit16 -> Bit16 -> 
+       Bit ->
+       Bit -> 
+       Bit -> 
+       Bit -> 
+       Bit -> 
+       Bit -> 
+       (Bit16, Bit, Bit)
+alu x y zx nx zy ny f no = undefined
