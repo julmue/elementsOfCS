@@ -1,4 +1,8 @@
-module LogicSeq where
+module LogicSeq ( 
+    dff
+  , bit
+  , Signal
+  ) where
 
 import Logic
 import Arithmetic
@@ -28,6 +32,12 @@ dff signal = do
   signal' <- dff (S.tail signal)
   return $ past <:> signal'
 
+bit :: Signal Bit -> Signal Bit -> State Bit (Signal Bit)
+bit in_ load = mfix (\out -> dff $ S.zipWith3 mux out in_ load)
+
+
+-- helpers
+
 i :: Signal Bit
 i = S.repeat I 
 
@@ -40,22 +50,5 @@ clock = S.interleave i o
 test :: Signal Bit -> [Bit]
 test signal = S.take 10 signal
 
-register :: Signal Bit -> Signal Bit -> State Bit (Signal Bit)
-register in_ load = mfix (\out -> dff $ S.zipWith3 mux in_ out load)
-
-
--- https://hackage.haskell.org/package/Stream-0.4.7.2/docs/src/Data-Stream.html
--- stream
--- think of parser combinators ...
--- infixr 5 :> 
--- data Stream a = a :> Stream a deriving (Show)
-
--- iterate :: (a -> a) -> a -> Stream a
--- iterate f x = x :> (iterate f (f x))
-
--- take :: Int -> Stream a  -> [a]
--- take n ~(x :> xs)
---   | n == 0    = []
---   | n > 0     =  x : (take (n - 1) xs)
---   | otherwise = error "Stream.take: negative argument."
--- count = 1 :> count + 1
+run :: s -> State s a -> a
+run = flip evalState
