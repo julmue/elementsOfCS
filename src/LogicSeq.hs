@@ -1,6 +1,7 @@
 module LogicSeq ( 
     dff
   , bit
+  , register
   , Signal
   ) where
 
@@ -109,11 +110,27 @@ zipSignalBit16
   (zipSignalBit16 (sig01,sig02,sig03,sig04,sig05,sig06,sig07,sig08,sig09,sig10,sig11,sig12,sig13,sig14,sig15,sig16))
 
 
+
+
+-- helpers
+
 i :: Signal Bit
 i = S.repeat I 
 
+i16 :: Signal Bit16
+i16 = fmap replicateBit16 i
+
 o :: Signal Bit
 o = S.repeat O
+
+_O16 :: Bit16
+_O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
+
+_I16 :: Bit16
+_I16 = stringToBit16 "IIIIIIIIIIIIIIII"
+
+o16 :: Signal Bit16
+o16 = fmap replicateBit16 o
 
 clock :: Signal Bit
 clock = S.interleave i o

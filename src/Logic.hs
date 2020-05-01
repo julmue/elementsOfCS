@@ -1,4 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE  TypeSynonymInstances #-}
+{-# LANGUAGE  FlexibleInstances #-}
 
 module Logic (
     Bit(..),
@@ -58,6 +59,7 @@ module Logic (
     ) where
 
 import Prelude hiding (not, and, or)
+import Data.List (intercalate)
 
 nand :: Bit -> Bit -> Bit
 nand I I = O
@@ -141,6 +143,30 @@ type Bit16 = (
     Bit, 
     Bit, 
     Bit)
+
+instance Show Bit16 where 
+    show (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) =
+        mconcat . fmap show $ [b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16]
+
+instance Eq Bit16 where
+    (a01,a02,a03,a04,a05,a06,a07,a08,a09,a10,a11,a12,a13,a14,a15,a16) == (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) =
+        all id [ a01 == b01
+            , a02 == b02
+            , a03 == b03
+            , a04 == b04
+            , a05 == b05
+            , a06 == b06
+            , a07 == b07
+            , a08 == b08
+            , a09 == b09
+            , a10 == b10
+            , a11 == b11
+            , a12 == b12
+            , a13 == b13
+            , a14 == b14
+            , a15 == b15
+            , a16 == b16
+            ]
 
 replicateBit16 :: Bit -> Bit16
 replicateBit16 b = (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
@@ -321,8 +347,8 @@ fmap16' f
 -- helpers
 
 charToBit :: Char -> Bit
-charToBit '1' = I
-charToBit '0' = O
+charToBit 'I' = I
+charToBit 'O' = O
 
 stringToBit2 :: String -> Bit2
 stringToBit2 s = 
