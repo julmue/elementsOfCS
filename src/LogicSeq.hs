@@ -35,45 +35,31 @@ dff signal = do
 bit :: Signal Bit -> Signal Bit -> State Bit (Signal Bit)
 bit in_ load = mfix (\out -> dff $ S.zipWith3 mux out in_ load)
 
-register :: Signal Bit16 -> Signal Bit -> State Bit (Signal Bit16)
-register = undefined
-
-mux16' :: (a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a) -> Bit -> Bit -> Bit -> Bit -> a
-mux16' ~(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) sel1 sel2 sel3 sel4 =
-  case (sel1, sel2, sel3, sel4) of
-    (O,O,O,O) -> b01
-    (O,O,O,I) -> b02
-    (O,O,I,O) -> b03
-    (O,O,I,I) -> b04
-    (O,I,O,O) -> b05
-    (O,I,O,I) -> b06
-    (O,I,I,O) -> b07
-    (O,I,I,I) -> b08
-    (I,O,O,O) -> b09
-    (I,O,O,I) -> b10
-    (I,O,I,O) -> b11
-    (I,O,I,I) -> b12
-    (I,I,O,O) -> b13
-    (I,I,O,I) -> b14
-    (I,I,I,O) -> b15
-    (I,I,I,I) -> b16
-
-_01 b16 = mux16' b16 O O O O
-_02 b16 = mux16' b16 O O O I
-_03 b16 = mux16' b16 O O I O
-_04 b16 = mux16' b16 O O I I
-_05 b16 = mux16' b16 O I O O
-_06 b16 = mux16' b16 O I O I
-_07 b16 = mux16' b16 O I I O
-_08 b16 = mux16' b16 O I I I
-_09 b16 = mux16' b16 I O O O
-_10 b16 = mux16' b16 I O O I
-_11 b16 = mux16' b16 I O I O
-_12 b16 = mux16' b16 I O I I
-_13 b16 = mux16' b16 I I O O
-_14 b16 = mux16' b16 I I O I
-_15 b16 = mux16' b16 I I I O
-_16 b16 = mux16' b16 I I I I
+register :: Signal Bit16 -> Signal Bit -> State Bit16 (Signal Bit16)
+register in_ load = do 
+  (s01,s02,s03,s04,s05,s06,s07,s08,s09,s10,s11,s12,s13,s14,s15,s16) <- get
+  let (in_01,in_02,in_03,in_04,in_05,in_06,in_07,in_08,in_09,in_10,in_11,in_12,in_13,in_14,in_15,in_16) = unzipSignalBit16 in_
+      (out01, s01') = runBit in_01 s01
+      (out02, s02') = runBit in_02 s02 
+      (out03, s03') = runBit in_03 s03 
+      (out04, s04') = runBit in_04 s04 
+      (out05, s05') = runBit in_05 s05 
+      (out06, s06') = runBit in_06 s06 
+      (out07, s07') = runBit in_07 s07 
+      (out08, s08') = runBit in_08 s08 
+      (out09, s09') = runBit in_09 s09 
+      (out10, s10') = runBit in_10 s10 
+      (out11, s11') = runBit in_11 s11 
+      (out12, s12') = runBit in_12 s12
+      (out13, s13') = runBit in_13 s13
+      (out14, s14') = runBit in_14 s14
+      (out15, s15') = runBit in_15 s15
+      (out16, s16') = runBit in_16 s16 
+  put (s01',s02',s03',s04',s05',s06',s07',s08',s09',s10',s11',s12',s13',s14',s15',s16')
+  return $ zipSignalBit16 (out01,out02,out03,out04,out05,out06,out07,out08,out09,out10,out11,out12,out13,out14,out15,out16)
+    where 
+      runBit :: Signal Bit -> Bit -> (Signal Bit, Bit)
+      runBit in_ initial = runState (bit in_ load) initial
 
 unzipSignalBit16 :: 
   Signal Bit16 -> 

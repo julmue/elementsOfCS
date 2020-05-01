@@ -32,6 +32,25 @@ module Logic (
     dmux4Way,
     dmux8Way,
 
+    mux16',
+    _01,
+    _02,
+    _03,
+    _04,
+    _05,
+    _06,
+    _07,
+    _08,
+    _09,
+    _10,
+    _11,
+    _12,
+    _13,
+    _14,
+    _15,
+    _16,
+    fmap16',
+
     charToBit,
     stringToBit2,
     stringToBit8,
@@ -249,6 +268,54 @@ dmux8Way _in (sel1, sel2, sel3) =
         (out1, out2, out3, out4) = dmux4Way x sel'
         (out5, out6, out7, out8) = dmux4Way y sel'
     in (out1, out2, out3, out4, out5, out6, out7, out8)
+
+-- ----------------------------------------------------------------------------
+-- helpers
+
+mux16' :: (a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a) -> Bit -> Bit -> Bit -> Bit -> a
+mux16' ~(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) sel1 sel2 sel3 sel4 =
+  case (sel1, sel2, sel3, sel4) of
+    (O,O,O,O) -> b01
+    (O,O,O,I) -> b02
+    (O,O,I,O) -> b03
+    (O,O,I,I) -> b04
+    (O,I,O,O) -> b05
+    (O,I,O,I) -> b06
+    (O,I,I,O) -> b07
+    (O,I,I,I) -> b08
+    (I,O,O,O) -> b09
+    (I,O,O,I) -> b10
+    (I,O,I,O) -> b11
+    (I,O,I,I) -> b12
+    (I,I,O,O) -> b13
+    (I,I,O,I) -> b14
+    (I,I,I,O) -> b15
+    (I,I,I,I) -> b16
+
+_01 b16 = mux16' b16 O O O O
+_02 b16 = mux16' b16 O O O I
+_03 b16 = mux16' b16 O O I O
+_04 b16 = mux16' b16 O O I I
+_05 b16 = mux16' b16 O I O O
+_06 b16 = mux16' b16 O I O I
+_07 b16 = mux16' b16 O I I O
+_08 b16 = mux16' b16 O I I I
+_09 b16 = mux16' b16 I O O O
+_10 b16 = mux16' b16 I O O I
+_11 b16 = mux16' b16 I O I O
+_12 b16 = mux16' b16 I O I I
+_13 b16 = mux16' b16 I I O O
+_14 b16 = mux16' b16 I I O I
+_15 b16 = mux16' b16 I I I O
+_16 b16 = mux16' b16 I I I I
+
+fmap16' :: 
+    (a -> b) 
+    -> (a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a) 
+    -> (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
+fmap16' f
+    (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) = 
+    (f b01,f b02,f b03,f b04,f b05,f b06,f b07,f b08,f b09,f b10,f b11,f b12,f b13,f b14,f b15,f b16)
 
 -- ----------------------------------------------------------------------------
 -- helpers
