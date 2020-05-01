@@ -32,10 +32,10 @@ module Logic (
     dmux4Way,
     dmux8Way,
 
-    bit,
-    bit2,
-    bit8,
-    bit16
+    charToBit,
+    stringToBit2,
+    stringToBit8,
+    stringToBit16
     ) where
 
 import Prelude hiding (not, and, or)
@@ -253,29 +253,31 @@ dmux8Way _in (sel1, sel2, sel3) =
 -- ----------------------------------------------------------------------------
 -- helpers
 
-bit :: Char -> Bit
-bit '1' = I
-bit '0' = O
+charToBit :: Char -> Bit
+charToBit '1' = I
+charToBit '0' = O
 
-bit2 :: String -> Bit2
-bit2 s = 
-    case fmap bit s of 
+stringToBit2 :: String -> Bit2
+stringToBit2 s = 
+    case fmap charToBit s of 
         [b1,b2] -> (b1, b2)
         _ -> error "bit2"
 
-bit4 :: String -> Bit4
-bit4 s = 
-    case fmap bit s of
+stringToBit4 :: String -> Bit4
+stringToBit4 s = 
+    case fmap charToBit s of
         [b1,b2,b3,b4] -> (b1,b2,b3,b4)
         _ -> error "bit4"
 
-bit8 :: String -> Bit8
-bit8 s =
-    case fmap bit s of 
+stringToBit8 :: String -> Bit8
+stringToBit8 s =
+    case fmap charToBit s of 
         [b1,b2,b3,b4,b5,b6,b7,b8] -> (b1,b2,b3,b4,b5,b6,b7,b8)
+        _ -> error "bit8"
 
-bit16 :: String -> Bit16
-bit16 s =
-    case fmap bit s of 
+stringToBit16 :: String -> Bit16
+stringToBit16 s =
+    case fmap charToBit s of 
         [b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16] -> 
             (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16)
+        _ -> error "bit16"
