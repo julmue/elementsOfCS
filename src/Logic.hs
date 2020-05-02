@@ -12,9 +12,7 @@ module Logic (
     Bit12,
     Bit14,
     Bit16,
- 
-    replicateBit16,
-    fmapBit16,
+
     zipWithBit16,
     zipWith3Bit16,
     
@@ -38,33 +36,8 @@ module Logic (
     dmux8Way,
 
     mux8',
-    _01_8,
-    _02_8,
-    _03_8,
-    _04_8,
-    _05_8,
-    _06_8,
-    _07_8,
-    _08_8,
-
-    mux16',
-    _01_16,
-    _02_16,
-    _03_16,
-    _04_16,
-    _05_16,
-    _06_16,
-    _07_16,
-    _08_16,
-    _09_16,
-    _10_16,
-    _11_16,
-    _12_16,
-    _13_16,
-    _14_16,
-    _15_16,
-    _16_16,
-    fmap16',
+    mux16'
+,
 
     charToBit,
     stringToBit2,
@@ -74,6 +47,9 @@ module Logic (
 
 import Prelude hiding (not, and, or)
 import Data.List (intercalate)
+import Text.Read
+
+import Vector
 
 nand :: Bit -> Bit -> Bit
 nand I I = O
@@ -100,199 +76,109 @@ mux a b sel = (a `and` (not sel)) `or` (b `and` sel)
 -- if sel=0 
 -- then (a=p, b=O)
 -- else (a=O, b=p)
-dmux :: Bit -> Bit -> (Bit, Bit)
+dmux :: Bit -> Bit -> Bit2
 dmux p sel = let
     a = mux p O sel
     b = mux p O (not sel)
-    in (a, b)
+    in V2 a b
 
 {- multi bit arrays "buses" -}
 -- type Bit = Bool
 data Bit = I | O deriving (Show, Read, Eq)
 
+type Bit2 = V2 Bit
+instance {-# Overlapping #-} Show Bit2 where 
+    show (V2 b1 b2) = 
+        show b1 <> show b2 
 
-type Bit2 = (
-    Bit, 
-    Bit)
+type Bit3 = V3 Bit
+instance {-# Overlapping #-} Show Bit3 where 
+    show (V3 b1 b2 b3) = 
+        show b1 <> show b2 <> show b3 
 
-type Bit3 = (
-    Bit,
-    Bit,
-    Bit)
+type Bit4 = V4 Bit
+instance {-# Overlapping #-} Show Bit4 where 
+    show (V4 b1 b2 b3 b4) = 
+        show b1 <> show b2 <> show b3 <> show b4 
 
-type Bit4 = (
-    Bit,
-    Bit,
-    Bit,
-    Bit)
+type Bit5 = V5 Bit
+instance {-# Overlapping #-} Show Bit5 where 
+    show (V5 b1 b2 b3 b4 b5) = 
+        show b1 <> show b2 <> show b3 <> show b4 <> show b5 
 
+type Bit6 = V6 Bit
+instance {-# Overlapping #-} Show Bit6 where 
+    show (V6 b1 b2 b3 b4 b5 b6) = 
+        show b1 <> show b2 <> show b3 <> show b4 <> show b5 <> show b6
 
-type Bit6 = (
-    Bit,
-    Bit,
-    Bit,
-    Bit,
-    Bit,
-    Bit)
+type Bit8 = V8 Bit
+instance {-# Overlapping #-} Show Bit8 where 
+    show (V8 b1 b2 b3 b4 b5 b6 b7 b8) = 
+        show b1 <> show b2 <> show b3 <> show b4 <> show b5 <> show b6 <> show b7 <> show b8
 
+type Bit9 = V9 Bit
 
-type Bit8 = (
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-   
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit)
+type Bit12 = V12 Bit
 
-type Bit9 = ( 
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit,    
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit)
+type Bit14 = V14 Bit
 
-type Bit12 = (
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-   
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit,
-    
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit)
+type Bit16 = V16 Bit
+instance {-# Overlapping #-} Show Bit16 where 
+    show (V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16) = 
+        show b01 <> show b02 <> show b03 <> show b04 <> show b05 <> show b06 <> show b07 <> show b08 <>
+        show b09 <> show b10 <> show b11 <> show b12 <> show b13 <> show b14 <> show b15 <> show b16
 
-type Bit14 = (
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-   
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit,
-    
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-
-    Bit, 
-    Bit)
-
-type Bit16 = (
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-   
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit,
-    
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit, 
-   
-    Bit, 
-    Bit, 
-    Bit, 
-    Bit)
-
-instance Show Bit16 where 
-    show (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) =
-        mconcat . fmap show $ [b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16]
-
-instance Eq Bit16 where
-    (a01,a02,a03,a04,a05,a06,a07,a08,a09,a10,a11,a12,a13,a14,a15,a16) == (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) =
-        all id [ a01 == b01
-            , a02 == b02
-            , a03 == b03
-            , a04 == b04
-            , a05 == b05
-            , a06 == b06
-            , a07 == b07
-            , a08 == b08
-            , a09 == b09
-            , a10 == b10
-            , a11 == b11
-            , a12 == b12
-            , a13 == b13
-            , a14 == b14
-            , a15 == b15
-            , a16 == b16
-            ]
-
-replicateBit16 :: Bit -> Bit16
-replicateBit16 b = (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-
-fmapBit16 :: (Bit -> Bit) -> Bit16 -> Bit16
-fmapBit16 f 
-    (b01, b02, b03, b04, b05, b06, b07, b08, b09, b10, b11, b12, b13, b14, b15, b16) = 
-    (f b01, f b02, f b03, f b04, f b05, f b06, f b07, f b08, f b09, f b10, f b11, f b12, f b13, f b14, f b15, f b16)
+-- instance Show Bit16 where 
+--     show (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) =
+--         mconcat . fmap show $ [b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16]
 
 zipWithBit16 :: (Bit -> Bit -> Bit) -> Bit16 -> Bit16 -> Bit16
 zipWithBit16 
     f     
-    (a01, a02, a03, a04, a05, a06, a07, a08, a09, a10, a11, a12, a13, a14, a15, a16)
-    (b01, b02, b03, b04, b05, b06, b07, b08, b09, b10, b11, b12, b13, b14, b15, b16) =
-    ( f a01 b01
-    , f a02 b02
-    , f a03 b03
-    , f a04 b04
-    , f a05 b05
-    , f a06 b06
-    , f a07 b07
-    , f a08 b08
-    , f a09 b09
-    , f a10 b10
-    , f a11 b11
-    , f a12 b12
-    , f a13 b13
-    , f a14 b14
-    , f a15 b15
-    , f a16 b16 ) 
+    (V16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16)
+    (V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16) =
+    V16 (f a01 b01)
+        (f a02 b02)
+        (f a03 b03)
+        (f a04 b04)
+        (f a05 b05)
+        (f a06 b06)
+        (f a07 b07)
+        (f a08 b08)
+        (f a09 b09)
+        (f a10 b10)
+        (f a11 b11)
+        (f a12 b12)
+        (f a13 b13)
+        (f a14 b14)
+        (f a15 b15)
+        (f a16 b16) 
  
 zipWith3Bit16 :: (Bit -> Bit -> Bit -> Bit) -> Bit16 -> Bit16 -> Bit16 -> Bit16
 zipWith3Bit16 
     f     
-    (a01, a02, a03, a04, a05, a06, a07, a08, a09, a10, a11, a12, a13, a14, a15, a16)
-    (b01, b02, b03, b04, b05, b06, b07, b08, b09, b10, b11, b12, b13, b14, b15, b16) 
-    (c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16) =
-    ( f a01 b01 b01
-    , f a02 b02 c02
-    , f a03 b03 c03
-    , f a04 b04 c04
-    , f a05 b05 c05
-    , f a06 b06 c06
-    , f a07 b07 c07
-    , f a08 b08 c08
-    , f a09 b09 c09
-    , f a10 b10 c10
-    , f a11 b11 c11
-    , f a12 b12 c12
-    , f a13 b13 c13
-    , f a14 b14 c14
-    , f a15 b15 c15
-    , f a16 b16 c16 ) 
+    (V16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16)
+    (V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16)
+    (V16 c01 c02 c03 c04 c05 c06 c07 c08 c09 c10 c11 c12 c13 c14 c15 c16) =
+    V16 (f a01 b01 b01)
+        (f a02 b02 c02)
+        (f a03 b03 c03)
+        (f a04 b04 c04)
+        (f a05 b05 c05)
+        (f a06 b06 c06)
+        (f a07 b07 c07)
+        (f a08 b08 c08)
+        (f a09 b09 c09)
+        (f a10 b10 c10)
+        (f a11 b11 c11)
+        (f a12 b12 c12)
+        (f a13 b13 c13)
+        (f a14 b14 c14)
+        (f a15 b15 c15)
+        (f a16 b16 c16)
 
 not16 :: Bit16 -> Bit16
-not16 = fmapBit16 not
+not16 = fmap not
 
 and16 :: Bit16 -> Bit16 -> Bit16
 and16 = zipWithBit16 and
@@ -304,19 +190,19 @@ or16 = zipWithBit16 or
 -- sel=1 -> b
 mux16 :: Bit16 -> Bit16 -> Bit -> Bit16
 mux16 a16 b16 sel =
-    let sel16 = replicateBit16 sel 
+    let sel16 = replicateV16 sel 
     in zipWith3Bit16 mux a16 b16 sel16
 
 or8Way :: Bit8 -> Bit
-or8Way (b01, b02, b03, b04, b05, b06, b07, b08) = 
-    b01 `or` b02 `or` b03 `or` b04 `or` b05 `or` b06 `or` b07 `or` b08
+or8Way (V8 b1 b2 b3 b4 b5 b6 b7 b8) = 
+    b1 `or` b2 `or` b3 `or` b4 `or` b5 `or` b6 `or` b7 `or` b8
 
 -- sel=00 -> a
 -- sel=01 -> b
 -- sel=10 -> b
 -- sel=11 -> d
 mux4Way16 :: Bit16 -> Bit16 -> Bit16 -> Bit16 -> Bit2 -> Bit16
-mux4Way16 a b c d sel@(sel1, sel2) = 
+mux4Way16 a b c d (V2 sel1 sel2) = 
     let x = mux16 a b sel2 
         y = mux16 c d sel2 
     in mux16 x y sel1
@@ -332,8 +218,8 @@ mux4Way16 a b c d sel@(sel1, sel2) =
 
 mux8Way16 :: Bit16 -> Bit16 -> Bit16 -> Bit16 -> Bit16 -> Bit16 -> Bit16 -> Bit16 ->
              Bit3 -> Bit16
-mux8Way16 a b c d e f g h (sel1, sel2, sel3) =
-    let sel' = (sel2, sel3)
+mux8Way16 a b c d e f g h sel@(V3 sel1 sel2 sel3) =
+    let sel' = V2 sel2 sel3
         x = mux4Way16 a b c d sel'
         y = mux4Way16 e f g h sel'
     in mux16 x y sel1 
@@ -343,11 +229,11 @@ mux8Way16 a b c d e f g h (sel1, sel2, sel3) =
 -- sel=10 -> c=in, a=b=d=0
 -- sel=11 -> d=in, a=b=c=0
 dmux4Way :: Bit -> Bit2 -> Bit4
-dmux4Way _in (sel1, sel2) = 
-    let (x, y) = dmux _in sel1
-        (out1, out2) = dmux x sel2
-        (out3, out4) = dmux y sel2
-    in (out1, out2, out3, out4)
+dmux4Way _in (V2 sel1 sel2) = 
+    let (V2 x y) = dmux _in sel1
+        (V2 out1 out2) = dmux x sel2
+        (V2 out3 out4) = dmux y sel2
+    in V4 out1 out2 out3 out4
 
 -- sel=000 -> a=in
 -- sel=001 -> b=in
@@ -358,12 +244,12 @@ dmux4Way _in (sel1, sel2) =
 -- sel=110 -> g=in
 -- sel=111 -> h=in
 dmux8Way :: Bit -> Bit3 -> Bit8
-dmux8Way _in (sel1, sel2, sel3) =
-    let sel' = (sel2, sel3)
-        (x,y) = dmux _in sel1 
-        (out1, out2, out3, out4) = dmux4Way x sel'
-        (out5, out6, out7, out8) = dmux4Way y sel'
-    in (out1, out2, out3, out4, out5, out6, out7, out8)
+dmux8Way _in (V3 sel1 sel2 sel3) =
+    let sel' = V2 sel2 sel3
+        V2 x y = dmux _in sel1 
+        (V4 out1 out2 out3 out4) = dmux4Way x sel'
+        (V4 out5 out6 out7 out8) = dmux4Way y sel'
+    in V8 out1 out2 out3 out4 out5 out6 out7 out8
 
 -- ----------------------------------------------------------------------------
 -- helpers
@@ -409,31 +295,6 @@ mux16' ~(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) sel1 s
     (I,I,I,O) -> b15
     (I,I,I,I) -> b16
 
-_01_16 b16 = mux16' b16 O O O O
-_02_16 b16 = mux16' b16 O O O I
-_03_16 b16 = mux16' b16 O O I O
-_04_16 b16 = mux16' b16 O O I I
-_05_16 b16 = mux16' b16 O I O O
-_06_16 b16 = mux16' b16 O I O I
-_07_16 b16 = mux16' b16 O I I O
-_08_16 b16 = mux16' b16 O I I I
-_09_16 b16 = mux16' b16 I O O O
-_10_16 b16 = mux16' b16 I O O I
-_11_16 b16 = mux16' b16 I O I O
-_12_16 b16 = mux16' b16 I O I I
-_13_16 b16 = mux16' b16 I I O O
-_14_16 b16 = mux16' b16 I I O I
-_15_16 b16 = mux16' b16 I I I O
-_16_16 b16 = mux16' b16 I I I I
-
-fmap16' :: 
-    (a -> b) 
-    -> (a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a) 
-    -> (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-fmap16' f
-    (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) = 
-    (f b01,f b02,f b03,f b04,f b05,f b06,f b07,f b08,f b09,f b10,f b11,f b12,f b13,f b14,f b15,f b16)
-
 -- ----------------------------------------------------------------------------
 -- helpers
 
@@ -444,24 +305,24 @@ charToBit 'O' = O
 stringToBit2 :: String -> Bit2
 stringToBit2 s = 
     case fmap charToBit s of 
-        [b1,b2] -> (b1, b2)
+        [b1,b2] -> V2 b1 b2
         _ -> error "bit2"
 
 stringToBit4 :: String -> Bit4
 stringToBit4 s = 
     case fmap charToBit s of
-        [b1,b2,b3,b4] -> (b1,b2,b3,b4)
+        [b1,b2,b3,b4] -> V4 b1 b2 b3 b4
         _ -> error "bit4"
 
 stringToBit8 :: String -> Bit8
 stringToBit8 s =
     case fmap charToBit s of 
-        [b1,b2,b3,b4,b5,b6,b7,b8] -> (b1,b2,b3,b4,b5,b6,b7,b8)
+        [b1,b2,b3,b4,b5,b6,b7,b8] -> V8 b1 b2 b3 b4 b5 b6 b7 b8
         _ -> error "bit8"
 
 stringToBit16 :: String -> Bit16
 stringToBit16 s =
     case fmap charToBit s of 
         [b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16] -> 
-            (b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16)
+            V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16
         _ -> error "bit16"

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1127a307705bac08d2828c7d979920ec0a5a4ba95f9c7e5b8d7e2d8aba99aa22
+-- hash: 7f2d179837dc1819c2cc036f0e763fdf251c8b81659a45a2dccf13c1320bde36
 
 name:           elementsOfCS
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Lib
       Logic
       LogicSeq
+      Vector
   other-modules:
       Paths_elementsOfCS
   hs-source-dirs:

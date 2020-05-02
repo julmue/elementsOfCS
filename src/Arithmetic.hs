@@ -5,6 +5,7 @@ module Arithmetic (
 
 import Prelude(undefined)
 import Logic
+import Vector
 
 -- LSB = least significant bit
 -- MSB = most significant bit
@@ -23,7 +24,7 @@ halfAdder :: Bit -> Bit -> Bit2
 halfAdder a b = 
     let carry = a `and` b
         sum = a `xor` b  
-    in (carry, sum)
+    in V2 carry sum
 
 -- add three bits
 -- add two bits
@@ -39,9 +40,9 @@ halfAdder a b =
 
 fullAdder :: Bit -> Bit -> Bit -> Bit2
 fullAdder a b c = 
-    let (carry, sum) = halfAdder a b
-        (carry', sum') = halfAdder c sum
-    in (carry' `or` carry, sum')
+    let (V2 carry sum) = halfAdder a b
+        (V2 carry' sum') = halfAdder c sum
+    in V2 (carry' `or` carry) sum'
 
 add16 :: Bit16 -> Bit16 -> Bit16
 add16 = undefined
