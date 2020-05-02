@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 module LogicSeq ( 
     dff
@@ -46,8 +47,12 @@ bit_ in_ load = mfix (\out -> dff_ (mux out in_ load))
 bit :: Signal Bit -> Signal Bit -> State Bit (Signal Bit)
 bit in_ load = mfix (\out -> dff $ S.zipWith3 mux out in_ load)
 
+data MemBit = MemBit (Signal Bit -> Signal Bit -> State Bit (Signal Bit))
+
 register_ :: Bit16 -> Bit -> State Bit16 Bit16
-register_ = undefined 
+register_ in_ load = do
+  memory <- get
+  undefined
 
 register :: Signal Bit16 -> Signal Bit -> State Bit16 (Signal Bit16)
 register in_ load = do 
@@ -128,15 +133,61 @@ run component in_ load initial = runState (component in_ load) initial
 
 -- Vector8 Bit16
 data Vector8 a = Vector8 {
-  _vector81 :: a,
-  _vector82 :: a,
-  _vector83 :: a,
-  _vector84 :: a,
-  _vector85 :: a,
-  _vector86 :: a,
-  _vector87 :: a,
-  _vector88 :: a
+  _vector8_1 :: a,
+  _vector8_2 :: a,
+  _vector8_3 :: a,
+  _vector8_4 :: a,
+  _vector8_5 :: a,
+  _vector8_6 :: a,
+  _vector8_7 :: a,
+  _vector8_8 :: a
   } deriving (Show, Read, Eq)
+
+data Vector16 a = Vector16 {
+  _vector16_01 :: a,
+  _vector16_02 :: a,
+  _vector16_03 :: a,
+  _vector16_04 :: a,
+  _vector16_05 :: a,
+  _vector16_06 :: a,
+  _vector16_07 :: a,
+  _vector16_08 :: a,
+
+  _vector16_09 :: a,
+  _vector16_10 :: a,
+  _vector16_11 :: a,
+  _vector16_12 :: a,
+  _vector16_13 :: a,
+  _vector16_14 :: a,
+  _vector16_15 :: a,
+  _vector16_16 :: a
+  } deriving (Show, Read, Eq)
+
+instance Functor Vector16 where
+  fmap f (Vector16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16) =
+    (Vector16 (f a01) (f a02) (f a03) (f a04) (f a05) (f a06) (f a07) (f a08) 
+              (f a09) (f a10) (f a11) (f a12) (f a13) (f a14) (f a15) (f a16))
+
+instance Foldable Vector16 where 
+  foldMap f (Vector16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16) = 
+    f a01 <> f a02 <> f a03 <> f a04 <> f a05 <> f a06 <> f a07 <> f a08 <> 
+    f a09 <> f a10 <> f a11 <> f a12 <> f a13 <> f a14 <> f a15 <> f a16
+
+instance Traversable Vector16 where 
+  traverse = traverseVector16
+
+traverseVector16
+  :: Applicative f =>
+     (a -> f b)
+     -> Vector16 a
+     -> f (Vector16 b)
+traverseVector16 f (Vector16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16) =
+  Vector16
+  <$> f a01 <*> f a02 <*> f a03 <*> f a04 
+  <*> f a05 <*> f a06 <*> f a07 <*> f a08 
+  <*> f a09 <*> f a10 <*> f a11 <*> f a12 
+  <*> f a13 <*> f a14 <*> f a15 <*> f a16  
+
 
 zipWith9 :: (a -> b -> c -> d -> e -> f -> g -> h -> i -> j) 
   -> Stream a
