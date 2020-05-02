@@ -33,23 +33,33 @@ module Logic (
     dmux4Way,
     dmux8Way,
 
+    mux8',
+    _01_8,
+    _02_8,
+    _03_8,
+    _04_8,
+    _05_8,
+    _06_8,
+    _07_8,
+    _08_8,
+
     mux16',
-    _01,
-    _02,
-    _03,
-    _04,
-    _05,
-    _06,
-    _07,
-    _08,
-    _09,
-    _10,
-    _11,
-    _12,
-    _13,
-    _14,
-    _15,
-    _16,
+    _01_16,
+    _02_16,
+    _03_16,
+    _04_16,
+    _05_16,
+    _06_16,
+    _07_16,
+    _08_16,
+    _09_16,
+    _10_16,
+    _11_16,
+    _12_16,
+    _13_16,
+    _14_16,
+    _15_16,
+    _16_16,
     fmap16',
 
     charToBit,
@@ -298,6 +308,27 @@ dmux8Way _in (sel1, sel2, sel3) =
 -- ----------------------------------------------------------------------------
 -- helpers
 
+mux8' :: (a,a,a,a,a,a,a,a) -> Bit -> Bit -> Bit -> a
+mux8' ~(b01,b02,b03,b04,b05,b06,b07,b08) sel1 sel2 sel3 =
+  case (sel1, sel2, sel3) of
+    (O,O,O) -> b01
+    (O,O,I) -> b02
+    (O,I,O) -> b03
+    (O,I,I) -> b04
+    (I,O,O) -> b05
+    (I,O,I) -> b06
+    (I,I,O) -> b07
+    (I,I,I) -> b08
+
+_01_8 b16 = mux8' b16 O O O
+_02_8 b16 = mux8' b16 O O I
+_03_8 b16 = mux8' b16 O I O
+_04_8 b16 = mux8' b16 O I I
+_05_8 b16 = mux8' b16 I O O
+_06_8 b16 = mux8' b16 I O I
+_07_8 b16 = mux8' b16 I I O
+_08_8 b16 = mux8' b16 I I I
+
 mux16' :: (a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a) -> Bit -> Bit -> Bit -> Bit -> a
 mux16' ~(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) sel1 sel2 sel3 sel4 =
   case (sel1, sel2, sel3, sel4) of
@@ -318,22 +349,22 @@ mux16' ~(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,b13,b14,b15,b16) sel1 s
     (I,I,I,O) -> b15
     (I,I,I,I) -> b16
 
-_01 b16 = mux16' b16 O O O O
-_02 b16 = mux16' b16 O O O I
-_03 b16 = mux16' b16 O O I O
-_04 b16 = mux16' b16 O O I I
-_05 b16 = mux16' b16 O I O O
-_06 b16 = mux16' b16 O I O I
-_07 b16 = mux16' b16 O I I O
-_08 b16 = mux16' b16 O I I I
-_09 b16 = mux16' b16 I O O O
-_10 b16 = mux16' b16 I O O I
-_11 b16 = mux16' b16 I O I O
-_12 b16 = mux16' b16 I O I I
-_13 b16 = mux16' b16 I I O O
-_14 b16 = mux16' b16 I I O I
-_15 b16 = mux16' b16 I I I O
-_16 b16 = mux16' b16 I I I I
+_01_16 b16 = mux16' b16 O O O O
+_02_16 b16 = mux16' b16 O O O I
+_03_16 b16 = mux16' b16 O O I O
+_04_16 b16 = mux16' b16 O O I I
+_05_16 b16 = mux16' b16 O I O O
+_06_16 b16 = mux16' b16 O I O I
+_07_16 b16 = mux16' b16 O I I O
+_08_16 b16 = mux16' b16 O I I I
+_09_16 b16 = mux16' b16 I O O O
+_10_16 b16 = mux16' b16 I O O I
+_11_16 b16 = mux16' b16 I O I O
+_12_16 b16 = mux16' b16 I O I I
+_13_16 b16 = mux16' b16 I I O O
+_14_16 b16 = mux16' b16 I I O I
+_15_16 b16 = mux16' b16 I I I O
+_16_16 b16 = mux16' b16 I I I I
 
 fmap16' :: 
     (a -> b) 
