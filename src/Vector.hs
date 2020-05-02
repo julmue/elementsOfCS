@@ -301,6 +301,57 @@ data V16 a = V16 {
   _V16_16 :: a
   } deriving (Show, Read, Eq, Functor, Foldable, Traversable)
 
+zipWithV16 :: (a -> b -> c) -> V16 a -> V16 b -> V16 c
+zipWithV16 f
+    (V16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16)
+    (V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16) =
+        (V16 
+            (f a01 b01)
+            (f a02 b02)
+            (f a03 b03)
+            (f a04 b04)
+
+            (f a05 b05)
+            (f a06 b06)
+            (f a07 b07)
+            (f a08 b08)
+
+            (f a09 b09)
+            (f a10 b10)
+            (f a11 b11)
+            (f a12 b12)
+
+            (f a13 b13)
+            (f a14 b14)
+            (f a15 b15)
+            (f a16 b16))
+
+zipWith3V16 :: (a -> b -> c -> d) -> V16 a -> V16 b -> V16 c -> V16 d
+zipWith3V16 f
+    (V16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16)
+    (V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16)
+    (V16 c01 c02 c03 c04 c05 c06 c07 c08 c09 c10 c11 c12 c13 c14 c15 c16) =
+        (V16 
+            (f a01 b01 c01)
+            (f a02 b02 c02)
+            (f a03 b03 c03)
+            (f a04 b04 c04)
+
+            (f a05 b05 c05)
+            (f a06 b06 c06)
+            (f a07 b07 c07)
+            (f a08 b08 c08)
+
+            (f a09 b09 c01)
+            (f a10 b10 c10)
+            (f a11 b11 c11)
+            (f a12 b12 c12)
+
+            (f a13 b13 c13)
+            (f a14 b14 c14)
+            (f a15 b15 c15)
+            (f a16 b16 c16))
+
 instance IsV1 V16 where 
     _1 = _V16_01
 instance IsV2 V16 where 

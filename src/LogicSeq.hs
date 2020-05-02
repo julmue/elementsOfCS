@@ -35,90 +35,69 @@ dff_ in_ = do
   put in_
   return memory
 
--- dff :: Signal Bit -> State Bit (Signal Bit)
--- dff signal = do
---   past <- get 
---   put (S.head signal)
---   signal' <- dff (S.tail signal)
---   return $ past <:> signal'
-
 bit_ :: Bit -> Bit -> State Bit Bit
 bit_ in_ load = mfix (\out -> dff_ (mux out in_ load))
 
--- bit :: Signal Bit -> Signal Bit -> State Bit (Signal Bit)
--- bit in_ load = mfix (\out -> dff $ S.zipWith3 mux out in_ load)
+run :: (t1 -> t2 -> State s a) -> t1 -> t2 -> s -> (a, s)
+run component in_ load initial = runState (component in_ load) initial
 
-data MemBit = MemBit (Signal Bit -> Signal Bit -> State Bit (Signal Bit))
+run' component in_ addr load initial = runState (component in_ addr load) initial
 
 register_ :: Bit16 -> Bit -> State Bit16 Bit16
-register_ in_ load = do
-  memory <- get
-  undefined
+register_ i load = do
+  (V16 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15 b16) <- get
+  let (V16 i01 i02 i03 i04 i05 i06 i07 i08 i09 i10 i11 i12 i13 i14 i15 i16) = i
+      (o01, b01') = run bit_ i01 load b01
+      (o02, b02') = run bit_ i02 load b02 
+      (o03, b03') = run bit_ i03 load b03 
+      (o04, b04') = run bit_ i04 load b04 
+      (o05, b05') = run bit_ i05 load b05 
+      (o06, b06') = run bit_ i06 load b06 
+      (o07, b07') = run bit_ i07 load b07 
+      (o08, b08') = run bit_ i08 load b08 
+      (o09, b09') = run bit_ i09 load b09 
+      (o10, b10') = run bit_ i10 load b10 
+      (o11, b11') = run bit_ i11 load b11 
+      (o12, b12') = run bit_ i12 load b12
+      (o13, b13') = run bit_ i13 load b13
+      (o14, b14') = run bit_ i14 load b14
+      (o15, b15') = run bit_ i15 load b15
+      (o16, b16') = run bit_ i16 load b16 
+  put (V16 b01' b02' b03' b04' b05' b06' b07' b08' b09' b10' b11' b12' b13' b14' b15' b16')
+  return (V16 o01 o02 o03 o04 o05 o06 o07 o08 o09 o10 o11 o12 o13 o14 o15 o16)
 
--- register :: Signal Bit16 -> Signal Bit -> State Bit16 (Signal Bit16)
--- register in_ load = do 
---   (s01,s02,s03,s04,s05,s06,s07,s08,s09,s10,s11,s12,s13,s14,s15,s16) <- get
---   let (in_01,in_02,in_03,in_04,in_05,in_06,in_07,in_08,in_09,in_10,in_11,in_12,in_13,in_14,in_15,in_16) = unzipSignalBit16 in_
---       (out01, s01') = run bit in_01 load s01
---       (out02, s02') = run bit in_02 load s02 
---       (out03, s03') = run bit in_03 load s03 
---       (out04, s04') = run bit in_04 load s04 
---       (out05, s05') = run bit in_05 load s05 
---       (out06, s06') = run bit in_06 load s06 
---       (out07, s07') = run bit in_07 load s07 
---       (out08, s08') = run bit in_08 load s08 
---       (out09, s09') = run bit in_09 load s09 
---       (out10, s10') = run bit in_10 load s10 
---       (out11, s11') = run bit in_11 load s11 
---       (out12, s12') = run bit in_12 load s12
---       (out13, s13') = run bit in_13 load s13
---       (out14, s14') = run bit in_14 load s14
---       (out15, s15') = run bit in_15 load s15
---       (out16, s16') = run bit in_16 load s16 
---   put (s01',s02',s03',s04',s05',s06',s07',s08',s09',s10',s11',s12',s13',s14',s15',s16')
---   return $ zipSignalBit16 (out01,out02,out03,out04,out05,out06,out07,out08,out09,out10,out11,out12,out13,out14,out15,out16)
+ram8 :: Bit16 -> Bit3 -> Bit -> State Byte16 Bit16
+ram8 i addr load = do
+  (V8 r01 r02 r03 r04 r05 r06 r07 r08) <- get
+  let (V8 l01 l02 l03 l04 l05 l06 l07 l08) = dmux8Way load addr
+      (o01, r01') = run register_ i l01 r01
+      (o02, r02') = run register_ i l02 r02 
+      (o03, r03') = run register_ i l03 r03 
+      (o04, r04') = run register_ i l04 r04 
+      (o05, r05') = run register_ i l05 r05 
+      (o06, r06') = run register_ i l06 r06 
+      (o07, r07') = run register_ i l07 r07 
+      (o08, r08') = run register_ i l08 r08 
+  put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
+  return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr)
 
--- -- inputs: 
--- --    in[16]
--- --    address[3]
--- --    load
--- -- out:
--- --    out[16]
--- -- function:
--- --    out(t)=RAM[adress(t)](t)
--- --    
-
--- ramn component dmuxNWay muxNWay16 (in_ :: Stream Bit16) address (load :: Stream Bit) = do
---     (Vector8 s01 s02 s03 s04 s05 s06 s07 s08) <- get
---     let (load01, load02, load03, load04, load05, load06, load07, load08) = unzipSignalBit8 $ S.zipWith dmuxNWay load address
---         (out01, s01') = run component in_ load01 s01
---         (out02, s02') = run component in_ load02 s02
---         (out03, s03') = run component in_ load03 s03
---         (out04, s04') = run component in_ load04 s04
---         (out05, s05') = run component in_ load05 s05
---         (out06, s06') = run component in_ load06 s06
---         (out07, s07') = run component in_ load07 s07
---         (out08, s08') = run component in_ load08 s08
---     put (Vector8 s01' s02' s03' s04' s05' s06' s07' s08')
---     return $ zipWith9 muxNWay16 out01 out02 out03 out04 out05 out06 out07 out08 address 
-
--- ram8 :: Signal Bit16 -> Signal Bit3 -> Signal Bit -> State Byte16 (Signal Bit16)
--- ram8 in_ address load = do
---     (Vector8 s01 s02 s03 s04 s05 s06 s07 s08) <- get
---     let (load01, load02, load03, load04, load05, load06, load07, load08) = unzipSignalBit8 $ S.zipWith dmux8Way load address
---         (out01, s01') = run register in_ load01 s01
---         (out02, s02') = run register in_ load02 s02
---         (out03, s03') = run register in_ load03 s03
---         (out04, s04') = run register in_ load04 s04
---         (out05, s05') = run register in_ load05 s05
---         (out06, s06') = run register in_ load06 s06
---         (out07, s07') = run register in_ load07 s07
---         (out08, s08') = run register in_ load08 s08
---     put (Vector8 s01' s02' s03' s04' s05' s06' s07' s08')
---     return $ zipWith9 mux8Way16 out01 out02 out03 out04 out05 out06 out07 out08 address 
-
--- ram64 :: Signal Bit16 -> Signal Bit6 -> Signal Bit -> State Byte128 (Signal Bit16)
--- ram64 in_ address load = undefined
+ram64 :: Bit16 -> Bit6 -> Bit -> State Byte128 Bit16
+ram64 i addr load = do
+  (V8 r01 r02 r03 r04 r05 r06 r07 r08) <- get
+  let (V6 a01 a02 a03 a04 a05 a06) = addr
+      addr' = (V3 a01 a02 a03)
+      addr'' = (V3 a04 a05 a06)
+      (V8 l01 l02 l03 l04 l05 l06 l07 l08) = dmux8Way load addr'
+      (o01, r01') = run' ram8 i addr'' l01 r01
+      (o02, r02') = run' ram8 i addr'' l02 r02 
+      (o03, r03') = run' ram8 i addr'' l03 r03 
+      (o04, r04') = run' ram8 i addr'' l04 r04 
+      (o05, r05') = run' ram8 i addr'' l05 r05 
+      (o06, r06') = run' ram8 i addr'' l06 r06 
+      (o07, r07') = run' ram8 i addr'' l07 r07 
+      (o08, r08') = run' ram8 i addr'' l08 r08 
+  put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
+  return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr')
 
 -- ram512 :: Signal Bit16 -> Signal Bit9 -> Signal Bit -> State KByte1 (Signal Bit16)
 -- ram512 = undefined
@@ -129,173 +108,19 @@ register_ in_ load = do
 -- ram16K :: Signal Bit16 -> Signal Bit14 -> Signal Bit -> State KByte64 (Signal Bit16)
 -- ram16K = undefined
 
--- run :: (Signal b -> l -> State s (Signal b)) -> Signal b -> l -> s -> (Signal b, s)
--- run component in_ load initial = runState (component in_ load) initial
 
--- -- Vector8 Bit16
--- data Vector8 a = Vector8 {
---   _vector8_1 :: a,
---   _vector8_2 :: a,
---   _vector8_3 :: a,
---   _vector8_4 :: a,
---   _vector8_5 :: a,
---   _vector8_6 :: a,
---   _vector8_7 :: a,
---   _vector8_8 :: a
---   } deriving (Show, Read, Eq)
+_O16 :: Bit16
+_O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
 
--- data Vector16 a = Vector16 {
---   _vector16_01 :: a,
---   _vector16_02 :: a,
---   _vector16_03 :: a,
---   _vector16_04 :: a,
---   _vector16_05 :: a,
---   _vector16_06 :: a,
---   _vector16_07 :: a,
---   _vector16_08 :: a,
+_I16 :: Bit16
+_I16 = stringToBit16 "IIIIIIIIIIIIIIII"
 
---   _vector16_09 :: a,
---   _vector16_10 :: a,
---   _vector16_11 :: a,
---   _vector16_12 :: a,
---   _vector16_13 :: a,
---   _vector16_14 :: a,
---   _vector16_15 :: a,
---   _vector16_16 :: a
---   } deriving (Show, Read, Eq)
+_OByte16 :: Byte16
+_OByte16 = replicateV8 _O16
 
--- instance Functor Vector16 where
---   fmap f (Vector16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16) =
---     (Vector16 (f a01) (f a02) (f a03) (f a04) (f a05) (f a06) (f a07) (f a08) 
---               (f a09) (f a10) (f a11) (f a12) (f a13) (f a14) (f a15) (f a16))
+_OByte128 :: Byte128
+_OByte128 = replicateV8 _OByte16
 
--- instance Foldable Vector16 where 
---   foldMap f (Vector16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16) = 
---     f a01 <> f a02 <> f a03 <> f a04 <> f a05 <> f a06 <> f a07 <> f a08 <> 
---     f a09 <> f a10 <> f a11 <> f a12 <> f a13 <> f a14 <> f a15 <> f a16
-
--- instance Traversable Vector16 where 
---   traverse = traverseVector16
-
--- traverseVector16
---   :: Applicative f =>
---      (a -> f b)
---      -> Vector16 a
---      -> f (Vector16 b)
--- traverseVector16 f (Vector16 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15 a16) =
---   Vector16
---   <$> f a01 <*> f a02 <*> f a03 <*> f a04 
---   <*> f a05 <*> f a06 <*> f a07 <*> f a08 
---   <*> f a09 <*> f a10 <*> f a11 <*> f a12 
---   <*> f a13 <*> f a14 <*> f a15 <*> f a16  
-
-
--- zipWith9 :: (a -> b -> c -> d -> e -> f -> g -> h -> i -> j) 
---   -> Stream a
---   -> Stream b
---   -> Stream c
---   -> Stream d
---   -> Stream e
---   -> Stream f
---   -> Stream g
---   -> Stream h
---   -> Stream i
---   -> Stream j
--- zipWith9 f (h1 `Cons` s1) (h2 `Cons` s2) (h3 `Cons` s3) (h4 `Cons` s4) (h5 `Cons` s5) (h6 `Cons` s6) (h7 `Cons` s7) (h8 `Cons` s8) (h9 `Cons` s9) =
---   f h1 h2 h3 h4 h5 h6 h7 h8 h9 `Cons` zipWith9 f s1 s2 s3 s4 s5 s6 s7 s8 s9 
-
--- unzipSignalBit8 :: 
---   Signal Bit8 -> 
---   (Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit)
--- unzipSignalBit8 ~(s `Cons` sig) =
---   ( Cons (_01_8 s) (_01_8 (unzipSignalBit8 sig))
---   , Cons (_02_8 s) (_02_8 (unzipSignalBit8 sig))
---   , Cons (_03_8 s) (_03_8 (unzipSignalBit8 sig))
---   , Cons (_04_8 s) (_04_8 (unzipSignalBit8 sig))
---   , Cons (_05_8 s) (_05_8 (unzipSignalBit8 sig))
---   , Cons (_06_8 s) (_06_8 (unzipSignalBit8 sig))
---   , Cons (_07_8 s) (_07_8 (unzipSignalBit8 sig))
---   , Cons (_08_8 s) (_08_8 (unzipSignalBit8 sig))
---   )
-
--- zipSignalBit8 ::
---   (Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit)
---   -> Signal Bit8
--- zipSignalBit8
---   ( s01 `Cons` sig01 
---   , s02 `Cons` sig02
---   , s03 `Cons` sig03
---   , s04 `Cons` sig04
---   , s05 `Cons` sig05
---   , s06 `Cons` sig06
---   , s07 `Cons` sig07
---   , s08 `Cons` sig08 ) =
---   (s01,s02,s03,s04,s05,s06,s07,s08) `Cons` 
---   (zipSignalBit8 (sig01,sig02,sig03,sig04,sig05,sig06,sig07,sig08))
-
--- unzipSignalBit16 :: 
---   Signal Bit16 -> 
---   (Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, 
---    Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit)
--- unzipSignalBit16 ~(s `Cons` sig) =
---   ( Cons (_01_16 s) (_01_16 (unzipSignalBit16 sig))
---   , Cons (_02_16 s) (_02_16 (unzipSignalBit16 sig))
---   , Cons (_03_16 s) (_03_16 (unzipSignalBit16 sig))
---   , Cons (_04_16 s) (_04_16 (unzipSignalBit16 sig))
---   , Cons (_05_16 s) (_05_16 (unzipSignalBit16 sig))
---   , Cons (_06_16 s) (_06_16 (unzipSignalBit16 sig))
---   , Cons (_07_16 s) (_07_16 (unzipSignalBit16 sig))
---   , Cons (_08_16 s) (_08_16 (unzipSignalBit16 sig))
---   , Cons (_09_16 s) (_09_16 (unzipSignalBit16 sig))
---   , Cons (_10_16 s) (_10_16 (unzipSignalBit16 sig))
---   , Cons (_11_16 s) (_11_16 (unzipSignalBit16 sig))
---   , Cons (_12_16 s) (_12_16 (unzipSignalBit16 sig))
---   , Cons (_13_16 s) (_13_16 (unzipSignalBit16 sig))
---   , Cons (_14_16 s) (_14_16 (unzipSignalBit16 sig))
---   , Cons (_15_16 s) (_15_16 (unzipSignalBit16 sig))
---   , Cons (_16_16 s) (_16_16 (unzipSignalBit16 sig))
---   )
-
--- zipSignalBit16 :: 
---   (Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, 
---    Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit, Signal Bit)
---   -> Signal Bit16
--- zipSignalBit16 
---   ( s01 `Cons` sig01 
---   , s02 `Cons` sig02
---   , s03 `Cons` sig03
---   , s04 `Cons` sig04
---   , s05 `Cons` sig05
---   , s06 `Cons` sig06
---   , s07 `Cons` sig07
---   , s08 `Cons` sig08
---   , s09 `Cons` sig09
---   , s10 `Cons` sig10
---   , s11 `Cons` sig11
---   , s12 `Cons` sig12
---   , s13 `Cons` sig13
---   , s14 `Cons` sig14
---   , s15 `Cons` sig15
---   , s16 `Cons` sig16 ) = 
---   (s01,s02,s03,s04,s05,s06,s07,s08,s09,s10,s11,s12,s13,s14,s15,s16) `Cons` 
---   (zipSignalBit16 (sig01,sig02,sig03,sig04,sig05,sig06,sig07,sig08,sig09,sig10,sig11,sig12,sig13,sig14,sig15,sig16))
-
--- -- helpers
-
--- i :: Signal Bit
--- i = S.repeat I 
-
--- i16 :: Signal Bit16
--- i16 = fmap replicateBit16 i
-
--- o :: Signal Bit
--- o = S.repeat O
-
--- _O16 :: Bit16
--- _O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
-
--- _I16 :: Bit16
--- _I16 = stringToBit16 "IIIIIIIIIIIIIIII"
 
 -- o16 :: Signal Bit16
 -- o16 = fmap replicateBit16 o
