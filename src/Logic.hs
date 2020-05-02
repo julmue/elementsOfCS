@@ -6,7 +6,11 @@ module Logic (
     Bit2,
     Bit3,
     Bit4,
+    Bit6,
     Bit8,
+    Bit9,
+    Bit12,
+    Bit14,
     Bit16,
  
     replicateBit16,
@@ -122,6 +126,16 @@ type Bit4 = (
     Bit,
     Bit)
 
+
+type Bit6 = (
+    Bit,
+    Bit,
+    Bit,
+    Bit,
+    Bit,
+    Bit)
+
+
 type Bit8 = (
     Bit, 
     Bit, 
@@ -132,7 +146,53 @@ type Bit8 = (
     Bit, 
     Bit, 
     Bit)
+
+type Bit9 = ( 
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit,    
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit)
+
+type Bit12 = (
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit, 
+   
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit,
     
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit)
+
+type Bit14 = (
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit, 
+   
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit,
+    
+    Bit, 
+    Bit, 
+    Bit, 
+    Bit, 
+
+    Bit, 
+    Bit)
+
 type Bit16 = (
     Bit, 
     Bit, 

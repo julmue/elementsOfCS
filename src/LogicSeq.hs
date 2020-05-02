@@ -18,6 +18,12 @@ import Control.Monad
 -- Signal = Stream Bit?
 type Signal = Stream
 
+type Byte16 = Vector8 Bit16
+type Byte128 = Vector8 Byte16
+type KByte1 = Vector8 Byte128
+type KByte8 = Vector8 KByte1
+type KByte64 = Vector8 KByte8
+
 dff :: Signal Bit -> State Bit (Signal Bit)
 dff signal = do
   past <- get 
@@ -64,7 +70,8 @@ runBit in_ load initial = runState (bit in_ load) initial
 -- function:
 --    out(t)=RAM[adress(t)](t)
 --    
-ram8 :: Signal Bit16 -> Signal Bit3 -> Signal Bit -> State (Vector8 Bit16) (Signal Bit16)
+
+ram8 :: Signal Bit16 -> Signal Bit3 -> Signal Bit -> State Byte16 (Signal Bit16)
 ram8 in_ address load = do
     (Vector8 s01 s02 s03 s04 s05 s06 s07 s08) <- get
     let (load01, load02, load03, load04, load05, load06, load07, load08) = unzipSignalBit8 $ S.zipWith dmux8Way load address
@@ -81,6 +88,20 @@ ram8 in_ address load = do
 
 runRegister :: Signal Bit16 -> Signal Bit -> Bit16 -> (Signal Bit16, Bit16) 
 runRegister in_ load initial = runState (register in_ load) initial
+
+ram64 :: Signal Bit16 -> Signal Bit6 -> Signal Bit -> State Byte128 (Signal Bit16)
+ram64 in_ address load = undefined
+
+ram512 :: Signal Bit16 -> Signal Bit9 -> Signal Bit -> State KByte1 (Signal Bit16)
+ram512 = undefined
+
+ram4K :: Signal Bit16 -> Signal Bit12 -> Signal Bit -> State KByte8 (Signal Bit16)
+ram4K = undefined
+
+ram16K :: Signal Bit16 -> Signal Bit14 -> Signal Bit -> State KByte64 (Signal Bit16)
+ram16K = undefined
+
+
 
 -- Vector8 Bit16
 data Vector8 a = Vector8 {
