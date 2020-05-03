@@ -280,6 +280,25 @@ instance IsV13 V14 where
 instance IsV14 V14 where 
     _14 = _V14_14
 
+data V15 a = V15 {
+  _V15_01 :: a,
+  _V15_02 :: a,
+  _V15_03 :: a,
+  _V15_04 :: a,
+  _V15_05 :: a,
+  _V15_06 :: a,
+  _V15_07 :: a,
+  _V15_08 :: a,
+
+  _V15_09 :: a,
+  _V15_10 :: a,
+  _V15_11 :: a,
+  _V15_12 :: a,
+  _V15_13 :: a,
+  _V15_14 :: a,
+  _V15_15 :: a
+  } deriving (Show, Read, Eq, Functor, Foldable, Traversable)
+
 
 data V16 a = V16 {
   _V16_01 :: a,

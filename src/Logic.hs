@@ -11,6 +11,7 @@ module Logic (
     Bit9,
     Bit12,
     Bit14,
+    Bit15,
     Bit16,
 
     zipWithBit16,
@@ -121,6 +122,12 @@ type Bit9 = V9 Bit
 type Bit12 = V12 Bit
 
 type Bit14 = V14 Bit
+
+type Bit15 = V15 Bit
+instance {-# Overlapping #-} Show Bit15 where 
+    show (V15 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 b12 b13 b14 b15) = 
+        show b01 <> show b02 <> show b03 <> show b04 <> show b05 <> show b06 <> show b07 <> show b08 <>
+        show b09 <> show b10 <> show b11 <> show b12 <> show b13 <> show b14 <> show b15
 
 type Bit16 = V16 Bit
 instance {-# Overlapping #-} Show Bit16 where 

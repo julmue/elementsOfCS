@@ -11,6 +11,7 @@ module LogicSeq (
   , ram512
   , ram4K
   , ram16K
+  , ram32K
   ) where
 
 import Vector
@@ -28,7 +29,8 @@ type Byte16 = V8 Bit16
 type Byte128 = V8 Byte16
 type KByte1 = V8 Byte128
 type KByte8 = V8 KByte1
-type KByte32 = V4 KByte8
+type KByte16 = V4 KByte8
+type KByte32 = V8 KByte8
 
 run :: (in_ -> load -> State s out) -> in_ -> load -> s -> (out, s)
 run component in_ load initial = runState (component in_ load) initial
@@ -137,7 +139,7 @@ ram4K in_ addr load = do
   put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
   return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr')
 
-ram16K :: Bit16 -> Bit14 -> Bit -> State KByte32 Bit16
+ram16K :: Bit16 -> Bit14 -> Bit -> State KByte16 Bit16
 ram16K in_ addr load = do
   (V4 r01 r02 r03 r04) <- get
   let (V14 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14) = addr
@@ -150,3 +152,21 @@ ram16K in_ addr load = do
       (o04, r04') = run' ram4K in_ addr'' l04 r04 
   put (V4 r01' r02' r03' r04')
   return (mux4Way16 o01 o02 o03 o04 addr')
+
+ram32K :: Bit16 -> Bit15 -> Bit -> State KByte32 Bit16
+ram32K in_ addr load = do
+  (V8 r01 r02 r03 r04 r05 r06 r07 r08) <- get
+  let (V15 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15) = addr
+      addr' = (V3 a01 a02 a03)
+      addr'' = (V12 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14 a15)
+      (V8 l01 l02 l03 l04 l05 l06 l07 l08) = dmux8Way load addr'
+      (o01, r01') = run' ram4K in_ addr'' l01 r01
+      (o02, r02') = run' ram4K in_ addr'' l02 r02 
+      (o03, r03') = run' ram4K in_ addr'' l03 r03 
+      (o04, r04') = run' ram4K in_ addr'' l04 r04 
+      (o05, r05') = run' ram4K in_ addr'' l05 r05 
+      (o06, r06') = run' ram4K in_ addr'' l06 r06 
+      (o07, r07') = run' ram4K in_ addr'' l07 r07 
+      (o08, r08') = run' ram4K in_ addr'' l08 r08 
+  put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
+  return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr')
