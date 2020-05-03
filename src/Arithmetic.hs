@@ -69,6 +69,33 @@ add16 (V16 a16 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)
 inc16 :: Bit16 -> Bit16
 inc16 b = add16 b (V16 O O O O O O O O O O O O O O O I)
 
+flip16 :: Bit16 -> Bit16
+flip16 = fmap not
+
+-- to obtain the code of -x from x
+-- leave all the trailing (least significant) 0s
+-- and the first least significant I intact
+-- then flip the remaining bits
+-- hardware shortcut: 
+-- flip all the bits of x
+-- add 1 to the result
+negate16 :: Bit16 -> Bit16
+negate16 = inc16 . flip16 
+
+isNegative :: Bit16 -> Bit
+isNegative (V16 msb _ _ _ _ _ _ _ _ _ _ _ _ _ _ _) = eq msb I 
+
+eq16 :: Bit16 -> Bit16 -> Bit
+eq16 a b = and16Way (zipWithV16 eq a b)
+
+and16Way :: Bit16 -> Bit
+and16Way (V16 a16 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01) =
+    a16 `and` a15 `and` a14 `and` a13 `and` a12 `and` a11 `and` a10 `and` a09 `and` 
+    a08 `and` a07 `and` a06 `and` a05 `and` a04 `and` a03 `and` a02 `and` a01
+
+eq :: Bit -> Bit -> Bit
+eq a b = (a `and` b) `or` (not a `and` not b)
+
 -- overflow is neither detected nor handled
 alu :: Bit16 -> Bit16 -> 
        Bit ->
@@ -78,9 +105,20 @@ alu :: Bit16 -> Bit16 ->
        Bit -> 
        Bit -> 
        (Bit16, Bit, Bit)
-alu x y zx nx zy ny f no = undefined
+alu x y zx nx zy ny f no = 
+    let x' = mux16 x zero zx
+        x'' = mux16 x' (negate16 x') nx
+        y' = mux16 y zero zy
+        y'' = mux16 y' (negate16 y') nx
+        out = mux16 (add16 x'' y'') (and16 x'' y'') f
+        out' = mux16 out (negate16 out) no
+        zr = eq16 out' zero
+        nr = isNegative out'
+    in (out', zr, nr)
+    where 
+        zero = replicateV16 O
 
-
+-- ----------------------------------------------------------------------------
 -- helpers
 
 binary1ToInt :: Bit -> Int
@@ -123,4 +161,5 @@ binary8ToUnsignedInt (V8 b8 b7 b6 b5 b4 b3 b2 b1) =
         int O = 0
 
 signedIntToBinary8 :: Int -> Bit8
-signedIntToBinary8 = undefined
+signedIntToBinary8 0 = unsignedIntToBinary8 0
+signedIntToBinary8 i = unsignedIntToBinary8 $ 2^8 - i 
