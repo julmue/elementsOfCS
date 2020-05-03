@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7f2d179837dc1819c2cc036f0e763fdf251c8b81659a45a2dccf13c1320bde36
+-- hash: 8667c5802e0e97e58d4a25ded227e2fda23174e6895f9bd72e947b70a5304c5c
 
 name:           elementsOfCS
 version:        0.1.0.0
@@ -40,6 +40,8 @@ library
       Stream
     , base >=4.7 && <5
     , mtl
+    , pretty-show
+    , pretty-simple
   default-language: Haskell2010
 
 executable elementsOfCS-exe
@@ -54,6 +56,8 @@ executable elementsOfCS-exe
     , base >=4.7 && <5
     , elementsOfCS
     , mtl
+    , pretty-show
+    , pretty-simple
   default-language: Haskell2010
 
 test-suite elementsOfCS-test
@@ -73,6 +77,8 @@ test-suite elementsOfCS-test
     , base >=4.7 && <5
     , elementsOfCS
     , mtl
+    , pretty-show
+    , pretty-simple
     , smallcheck
     , tasty
     , tasty-hunit

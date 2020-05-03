@@ -24,6 +24,9 @@ dependencies:
 - Stream
 - mtl
 
+- pretty-simple
+- pretty-show
+
 library:
   source-dirs: src
 

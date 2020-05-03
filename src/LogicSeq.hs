@@ -15,6 +15,9 @@ import Arithmetic
 
 import Prelude hiding (iterate, take)
 
+import Text.Pretty.Simple (pPrint)
+-- import Text.Show.Pretty -- needs generics ... try out later
+
 import Data.Stream (Stream(..), (<:>))
 import qualified Data.Stream as S
 import Control.Monad.State
@@ -27,7 +30,7 @@ type Byte16 = V8 Bit16
 type Byte128 = V8 Byte16
 type KByte1 = V8 Byte128
 type KByte8 = V8 KByte1
-type KByte64 = V8 KByte8
+type KByte32 = V4 KByte8
 
 dff_ :: Bit -> State Bit Bit
 dff_ in_ = do
@@ -99,14 +102,56 @@ ram64 i addr load = do
   put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
   return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr')
 
--- ram512 :: Signal Bit16 -> Signal Bit9 -> Signal Bit -> State KByte1 (Signal Bit16)
--- ram512 = undefined
+ram512 :: Bit16 -> Bit9 -> Bit -> State KByte1 Bit16
+ram512 i addr load = do
+  (V8 r01 r02 r03 r04 r05 r06 r07 r08) <- get
+  let (V9 a01 a02 a03 a04 a05 a06 a07 a08 a09) = addr
+      addr' = (V3 a01 a02 a03)
+      addr'' = (V6 a04 a05 a06 a07 a08 a09)
+      (V8 l01 l02 l03 l04 l05 l06 l07 l08) = dmux8Way load addr'
+      (o01, r01') = run' ram64 i addr'' l01 r01
+      (o02, r02') = run' ram64 i addr'' l02 r02 
+      (o03, r03') = run' ram64 i addr'' l03 r03 
+      (o04, r04') = run' ram64 i addr'' l04 r04 
+      (o05, r05') = run' ram64 i addr'' l05 r05 
+      (o06, r06') = run' ram64 i addr'' l06 r06 
+      (o07, r07') = run' ram64 i addr'' l07 r07 
+      (o08, r08') = run' ram64 i addr'' l08 r08 
+  put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
+  return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr')
 
--- ram4K :: Signal Bit16 -> Signal Bit12 -> Signal Bit -> State KByte8 (Signal Bit16)
--- ram4K = undefined
 
--- ram16K :: Signal Bit16 -> Signal Bit14 -> Signal Bit -> State KByte64 (Signal Bit16)
--- ram16K = undefined
+ram4K :: Bit16 -> Bit12 -> Bit -> State KByte8 Bit16
+ram4K i addr load = do
+  (V8 r01 r02 r03 r04 r05 r06 r07 r08) <- get
+  let (V12 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12) = addr
+      addr' = (V3 a01 a02 a03)
+      addr'' = (V9 a04 a05 a06 a07 a08 a09 a10 a11 a12)
+      (V8 l01 l02 l03 l04 l05 l06 l07 l08) = dmux8Way load addr'
+      (o01, r01') = run' ram512 i addr'' l01 r01
+      (o02, r02') = run' ram512 i addr'' l02 r02 
+      (o03, r03') = run' ram512 i addr'' l03 r03 
+      (o04, r04') = run' ram512 i addr'' l04 r04 
+      (o05, r05') = run' ram512 i addr'' l05 r05 
+      (o06, r06') = run' ram512 i addr'' l06 r06 
+      (o07, r07') = run' ram512 i addr'' l07 r07 
+      (o08, r08') = run' ram512 i addr'' l08 r08 
+  put (V8 r01' r02' r03' r04' r05' r06' r07' r08')
+  return (mux8Way16 o01 o02 o03 o04 o05 o06 o07 o08 addr')
+
+ram16K :: Bit16 -> Bit14 -> Bit -> State KByte32 Bit16
+ram16K i addr load = do
+  (V4 r01 r02 r03 r04) <- get
+  let (V14 a01 a02 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14) = addr
+      addr' = (V2 a01 a02)
+      addr'' = (V12 a03 a04 a05 a06 a07 a08 a09 a10 a11 a12 a13 a14)
+      (V4 l01 l02 l03 l04) = dmux4Way load addr'
+      (o01, r01') = run' ram4K i addr'' l01 r01
+      (o02, r02') = run' ram4K i addr'' l02 r02 
+      (o03, r03') = run' ram4K i addr'' l03 r03 
+      (o04, r04') = run' ram4K i addr'' l04 r04 
+  put (V4 r01' r02' r03' r04')
+  return (mux4Way16 o01 o02 o03 o04 addr')
 
 
 _O16 :: Bit16
@@ -121,6 +166,14 @@ _OByte16 = replicateV8 _O16
 _OByte128 :: Byte128
 _OByte128 = replicateV8 _OByte16
 
+_OKByte1 :: KByte1
+_OKByte1 = replicateV8 _OByte128
+
+_OKByte8 :: KByte8
+_OKByte8 = replicateV8 _OKByte1
+
+_OKByte32 :: KByte32
+_OKByte32 = V4 _OKByte8 _OKByte8 _OKByte8 _OKByte8
 
 -- o16 :: Signal Bit16
 -- o16 = fmap replicateBit16 o
