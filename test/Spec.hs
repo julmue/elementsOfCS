@@ -11,5 +11,5 @@ main :: IO ()
 main = defaultMain $ testGroup "Tests"
     [ logicTests
     , arithmeticTests
-    , logicSeqTests
+--    , logicSeqTests
     ]

@@ -7,6 +7,7 @@ import Test.Tasty.QuickCheck as QC
 import Test.Tasty.SmallCheck as SC
 import Test.Tasty.HUnit
 
+import Vector
 import Logic
 
 import Prelude (($))
@@ -82,11 +83,11 @@ muxTests = testGroup "muxTests" [
 
 dmuxTests = testGroup "dmuxTests" [
       testCase "dmux I I" $
-        dmux I I @=? (O, I)
+        dmux I I @=? (V2 O I)
     , testCase "dmux O I" $
-        dmux O I @=? (O, O)
+        dmux O I @=? (V2 O O)
     , testCase "dmux I O" $
-        dmux I O @=? (I, O)
+        dmux I O @=? (V2 I O)
     , testCase "dmux I O" $
-        dmux O O @=? (O, O) 
+        dmux O O @=? (V2 O O) 
     ]
