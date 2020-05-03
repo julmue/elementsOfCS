@@ -13,6 +13,28 @@ import LogicSeq
 import qualified Data.Stream as S
 import Control.Monad.State
 
+
+_O16 :: Bit16
+_O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
+
+_I16 :: Bit16
+_I16 = stringToBit16 "IIIIIIIIIIIIIIII"
+
+_OByte16 :: Byte16
+_OByte16 = replicateV8 _O16
+
+_OByte128 :: Byte128
+_OByte128 = replicateV8 _OByte16
+
+_OKByte1 :: KByte1
+_OKByte1 = replicateV8 _OByte128
+
+_OKByte8 :: KByte8
+_OKByte8 = replicateV8 _OKByte1
+
+_OKByte32 :: KByte32
+_OKByte32 = V4 _OKByte8 _OKByte8 _OKByte8 _OKByte8
+
 -- signal generators
 _O16 :: Bit16
 _O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
