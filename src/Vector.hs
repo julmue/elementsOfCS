@@ -130,6 +130,15 @@ instance IsV5 V6 where
 instance IsV6 V6 where 
     _6 = _V6_6
 
+data V7 a = V7 {
+  _V7_1 :: a,
+  _V7_2 :: a,
+  _V7_3 :: a,
+  _V7_4 :: a,
+  _V7_5 :: a,
+  _V7_6 :: a,
+  _V7_7 :: a
+  } deriving (Show, Read, Eq, Functor, Foldable, Traversable)
 
 data V8 a = V8 {
   _V8_1 :: a,

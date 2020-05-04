@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8667c5802e0e97e58d4a25ded227e2fda23174e6895f9bd72e947b70a5304c5c
+-- hash: 10dcfd8fafbdfe74b7a7c24820cfaea39e7fd1b60242d42cd8913243b10459c9
 
 name:           elementsOfCS
 version:        0.1.0.0
@@ -28,6 +28,8 @@ source-repository head
 library
   exposed-modules:
       Arithmetic
+      Computer
+      Language
       Lib
       Logic
       LogicSeq

@@ -12,6 +12,13 @@ module LogicSeq (
   , ram4K
   , ram16K
   , ram32K
+  , Bit16
+  , Byte16
+  , Byte128
+  , KByte1
+  , KByte8
+  , KByte16
+  , KByte32
   ) where
 
 import Vector

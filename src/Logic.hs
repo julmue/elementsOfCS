@@ -7,6 +7,7 @@ module Logic (
     Bit3,
     Bit4,
     Bit6,
+    Bit7,
     Bit8,
     Bit9,
     Bit12,
@@ -111,6 +112,11 @@ type Bit6 = V6 Bit
 instance {-# Overlapping #-} Show Bit6 where 
     show (V6 b1 b2 b3 b4 b5 b6) = 
         show b1 <> show b2 <> show b3 <> show b4 <> show b5 <> show b6
+
+type Bit7 = V7 Bit
+instance {-# Overlapping #-} Show Bit7 where 
+    show (V7 b1 b2 b3 b4 b5 b6 b7) = 
+        show b1 <> show b2 <> show b3 <> show b4 <> show b5 <> show b6 <> show b7
 
 type Bit8 = V8 Bit
 instance {-# Overlapping #-} Show Bit8 where 

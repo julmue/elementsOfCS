@@ -1,6 +1,10 @@
 module Arithmetic (
       halfAdder
     , fullAdder
+    , add16
+    , inc16
+    , negate16
+    , alu
 ) where
 
 import Prelude hiding (Bool, all, any, and, or, not)
@@ -101,7 +105,7 @@ alu :: Bit16 -> Bit16 ->
        Bit ->
        Bit -> 
        Bit -> 
-       Bit -> 
+       Bit ->   
        Bit -> 
        Bit -> 
        (Bit16, Bit, Bit)
