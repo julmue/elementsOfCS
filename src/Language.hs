@@ -1,5 +1,9 @@
 module Language where 
 
+import Data.Maybe (catMaybes)
+import Data.List (nub, (\\))
+import Text.Pretty.Simple
+
 import Vector
 import Logic
 import Arithmetic
@@ -35,8 +39,11 @@ bit16symInstr = binInstrSymInstr . bit16binInstr
 
 type Label = String
 type Addr = Int -- should be unsigned int
-symInstrBit16 :: (Label -> Addr)
-symInstrBit16 = undefined
+
+symInstrBit16 :: [VarAddr] -> [LabelAddr] -> SymInstr -> Bit16
+symInstrBit16 vas las (SymA si)  = 
+    let unholyMadness = (unsafeLookup (vas ++ las)) in symInstrAbit16 unholyMadness si
+symInstrBit16 _ _ (SymC sc) = symInstrCbit16 sc
 
 -- # A Instruction
 -- The A instruction is used to set the A register to a 5 bit value
@@ -101,6 +108,13 @@ unsignedIntToValue i =
         intToBinary1 0 = O
         intToBinary1 1 = I
 
+binInstrAbit16 :: BinInstrA -> Bit16
+binInstrAbit16 (BinInstrA (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)) =
+    V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01
+
+symInstrAbit16 :: (String -> Int) -> SymInstrA -> Bit16
+symInstrAbit16 f = binInstrAbit16 . symInstrAbinInstrA f 
+
 -- # C Instruction
 -- dest = comp; jump
 data BinInstrC = BinInstrC Bit7 Bit3 Bit3 deriving (Show, Eq)
@@ -120,6 +134,9 @@ symInstrCbinInstrC (SymInstrC sc sd sj) = BinInstrC (symCompBinComp sc) (symDest
 
 binInstrCsymInstrC :: BinInstrC -> SymInstrC
 binInstrCsymInstrC (BinInstrC bc bd bj) = SymInstrC (binCompSymComp bc) (binDestSymDest bd) (binJumpSymJump bj)
+
+symInstrCbit16 :: SymInstrC -> Bit16 
+symInstrCbit16 = binInstrCbit16 . symInstrCbinInstrC
 
 data SymComp =
       C_1
@@ -257,6 +274,7 @@ symJumpBinJump = fst (bijective symJumpBinJumpLUT)
 binJumpSymJump :: Bit3 -> SymJump
 binJumpSymJump = snd (bijective symJumpBinJumpLUT)
 
+-- ----------------------------------------------------------------------------
 -- helpers
 bijective :: (Eq a, Eq b ) => [(a,b)] -> (a -> b, b -> a)
 bijective abLUT = (lookupUnsafe abLUT, lookupUnsafe baLUT)
@@ -267,47 +285,51 @@ bijective abLUT = (lookupUnsafe abLUT, lookupUnsafe baLUT)
 commuteLUT :: [(a, b)] -> [(b, a)]
 commuteLUT = fmap (\(a,b) -> (b,a))
 
+
+unsafeLookup :: Eq a => [(a, b)] -> a -> b
+unsafeLookup m a = let (Just b) = lookup a m in b
+
 -- ----------------------------------------------------------------------------
 -- # predefined symbols
 
 -- ## virtual registers
-
-virtual_registers :: [(String, Bit15)]
+virtual_registers :: [(String, Int)]
 virtual_registers = 
-    [ ("R0",    (V15 O O O O O O O O O O O O O O O))
-    , ("R1",    (V15 O O O O O O O O O O O O O O I))
-    , ("R2",    (V15 O O O O O O O O O O O O O I O))
-    , ("R3",    (V15 O O O O O O O O O O O O O I I))
-    , ("R4",    (V15 O O O O O O O O O O O O I O O))
-    , ("R5",    (V15 O O O O O O O O O O O O I O I))
-    , ("R6",    (V15 O O O O O O O O O O O O I I O))
-    , ("R7",    (V15 O O O O O O O O O O O O I I I))
-    , ("R8",    (V15 O O O O O O O O O O O I O O O))
-    , ("R9",    (V15 O O O O O O O O O O O I O O I))
-    , ("R10",   (V15 O O O O O O O O O O O I O I O))
-    , ("R11",   (V15 O O O O O O O O O O O I O I I))
-    , ("R12",   (V15 O O O O O O O O O O O I I O O))
-    , ("R13",   (V15 O O O O O O O O O O O I I O I))
-    , ("R14",   (V15 O O O O O O O O O O O I I I O))
-    , ("R15",   (V15 O O O O O O O O O O O I I O I))
+    [ ("R0",    0)
+    , ("R1",    1)
+    , ("R2",    2)
+    , ("R3",    3)
+    , ("R4",    4)
+    , ("R5",    5)
+    , ("R6",    6)
+    , ("R7",    7)
+    , ("R8",    8)
+    , ("R9",    0)
+    , ("R10",   10)
+    , ("R11",   11)
+    , ("R12",   12)
+    , ("R13",   13)
+    , ("R14",   14)
+    , ("R15",   15)
+    ]
 
 -- # predefined pointers
-predefined_pointers :: [(String, Bit15)]
+predefined_pointers :: [(String, Int)]
 predefined_pointers =
-    [ ("SP",    (V15 O O O O O O O O O O O O O O O))
-    , ("LCL",   (V15 O O O O O O O O O O O O O O I))
-    , ("ARG",   (V15 O O O O O O O O O O O O O I O))
-    , ("THIS",  (V15 O O O O O O O O O O O O O I I))
-    , ("THAT",  (V15 O O O O O O O O O O O O I O O))
+    [ ("SP",    1)
+    , ("LCL",   2)
+    , ("ARG",   3)
+    , ("THIS",  4)
+    , ("THAT",  5)
     ]
 
 -- # IO pointers
 -- (0x4000)
-screen :: (String, Bit15)
-screen = ("SCREEN", (V15 O O O O O O O O O O O O O O O))
+screen :: (String, Int)
+screen = ("SCREEN", 0)
 -- (0x6000)
-kbd :: (String, Bit15)
-kbd = ("SCREEN", (V15 O O O O O O O O O O O O O O O))
+kbd :: (String, Int)
+kbd = ("SCREEN", 0)
 
 -- label symbols
 -- user defined symbols which serve to label destinations of goto commands
@@ -323,6 +345,57 @@ kbd = ("SCREEN", (V15 O O O O O O O O O O O O O O O))
 -- is treated as a variable and is assigned a unique memory address 
 -- by the assembler starting at RAM address 16 (0x0010)
 
+data ASM = ASM (Maybe String) SymInstr
+    deriving (Show, Eq)
+
+type LabelAddr = (String, Int)
+type Var = String
+type VarAddr = (String, Int)
+
+getLabelAddresses :: [ASM] -> [LabelAddr]
+getLabelAddresses = go [] 0
+    where 
+        go ls _ [] = nub . reverse $ ls
+        go ls i ((ASM (Just l) _) : as) = go ((l, i):ls) (i+1) as
+        go ls i (_:as) = go ls (i+1) as
+
+getLabels :: [ASM] -> [String]
+getLabels = fmap fst . getLabelAddresses
+
+getVariables :: [ASM] -> [Var]
+getVariables as = let 
+    labels = getLabels $ as
+    names = nub . catMaybes . fmap getVariable $ as
+    variables = names \\ labels
+    in variables
+    where 
+        getVariable :: ASM -> Maybe Var
+        getVariable (ASM _ (SymA (SymLabel v))) = Just v
+        getVariable (_) = Nothing
+
+getVariableAddresses :: [ASM] -> [VarAddr]
+getVariableAddresses as = getVariables as `zip` [varAddrStart ..]
+    where 
+        varAddrStart = 16
+
+x :: [ASM] -> ([VarAddr], [LabelAddr], [SymInstr])
+x as = let
+    vas = virtual_registers ++ predefined_pointers ++ getVariableAddresses as
+    las = getLabelAddresses as
+    sis = fmap getSymInstr as
+    in (vas, las, sis)
+    where 
+        getSymInstr :: ASM -> SymInstr
+        getSymInstr (ASM _ si) = si
+
+y :: ([VarAddr], [LabelAddr], [SymInstr]) -> [Bit16]
+y (vas, las, sis) = fmap (symInstrBit16 vas las) sis
+
+z :: [ASM] -> [Bit16]
+z = y . x
+
+renderAsm :: [ASM] -> IO ()
+renderAsm = pPrint . z
 -- ----------------------------------------------------------------------------
 -- testdata
 --
@@ -355,31 +428,35 @@ set_a_label = SymA . SymLabel
 set_a_value = SymA . SymValue
 compute c d j = SymC (SymInstrC c d j) 
 
+_label l i = ASM (Just l) i 
+asm = ASM Nothing
+
+sum_1_to_100 :: [ASM]
 sum_1_to_100 = [
-      set_a_label "i"
-    , compute C_1 D_M J_NULL        -- i = 1
-    , set_a_label "sum"
-    , compute C_0 D_M J_NULL        -- sum = 0
-    -- LOOP
-    , set_a_label "i"
-    , compute C_M D_D J_NULL        -- D = i
-    , set_a_value 100               -- A = 100
-    , compute C_SUB_D_A D_D J_NULL  -- D = i - 100
-    , set_a_label "END"
-    , compute C_D D_M J_JGT         -- if (i - 100) > 0 goto END
-    , set_a_label "i"               
-    , compute C_M D_D J_NULL        -- D = i
-    , set_a_label "sum"
-    , compute C_M D_A J_NULL        -- A = sum
-    , compute C_ADD_D_A D_D J_NULL  -- D = i + sum
-    , set_a_label "sum"
-    , compute C_D D_M J_NULL
-    , set_a_label "i"
-    , compute C_M D_D J_NULL
-    , compute C_INC_D D_M J_NULL
-    , set_a_label "LOOP"
-    , compute C_0 D_NULL J_JMP      -- goto loop
---    , END
-    , set_a_label "END"
-    , compute C_0 D_NULL J_JMP      -- goto end (recurse forever)
+      asm $ set_a_label "i"
+    , asm $ compute C_1 D_M J_NULL        -- i = 1
+    , asm $ set_a_label "sum"
+    , asm $ compute C_0 D_M J_NULL        -- sum = 0
+    , _label "LOOP" $ 
+        set_a_label "i"
+    , asm $ compute C_M D_D J_NULL        -- D = i
+    , asm $ set_a_value 100               -- A = 100
+    , asm $ compute C_SUB_D_A D_D J_NULL  -- D = i - 100
+    , asm $ set_a_label "END"
+    , asm $ compute C_D D_M J_JGT         -- if (i - 100) > 0 goto END
+    , asm $ set_a_label "i"               
+    , asm $ compute C_M D_D J_NULL        -- D = i
+    , asm $ set_a_label "sum"
+    , asm $ compute C_M D_A J_NULL        -- A = sum
+    , asm $ compute C_ADD_D_A D_D J_NULL  -- D = i + sum
+    , asm $ set_a_label "sum"
+    , asm $ compute C_D D_M J_NULL
+    , asm $ set_a_label "i"
+    , asm $ compute C_M D_D J_NULL
+    , asm $ compute C_INC_D D_M J_NULL
+    , asm $ set_a_label "LOOP"
+    , asm $ compute C_0 D_NULL J_JMP      -- goto loop
+    , _label "END" $ 
+        set_a_label "END"
+    , asm $ compute C_0 D_NULL J_JMP      -- goto end (recurse forever)
     ]
