@@ -391,11 +391,18 @@ x as = let
 y :: ([VarAddr], [LabelAddr], [SymInstr]) -> [Bit16]
 y (vas, las, sis) = fmap (symInstrBit16 vas las) sis
 
-z :: [ASM] -> [Bit16]
-z = y . x
+assemble :: [ASM] -> [Bit16]
+assemble = y . x
 
-renderAsm :: [ASM] -> IO ()
-renderAsm = pPrint . z
+disassemble :: [Bit16] -> [ASM]
+disassemble = fmap (ASM Nothing . bit16symInstr) 
+
+renderASM :: [ASM] -> IO ()
+renderASM = pPrint
+
+renderBinary :: [ASM] -> IO ()
+renderBinary = pPrint . assemble
+
 -- ----------------------------------------------------------------------------
 -- testdata
 --
