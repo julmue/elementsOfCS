@@ -64,99 +64,139 @@ data CpuOut = CpuOut {
 cpuControl :: Bit16 -> a
 cpuControl instruction = undefined
 
-cpuMock :: CpuIn -> State CpuState CpuOut
-cpuMock (CpuIn im ins _) = do
-    (CpuState a d pc) <- get
-    let pc' = inc16 pc
-    put (CpuState a d pc')
-    let om = im
-        wm = O
-        am = _O15
-        h = if ins == _I16 then I else O
-        pcount = truncateBit16 pc'
-    return (CpuOut om wm am pcount h)  
-
-cpuIn :: CpuIn
-cpuIn = CpuIn _O16 _O16 O    
-
-cpuInHalt :: CpuIn
-cpuInHalt = CpuIn _O16 _I16 O
-
-initialCpuState :: CpuState 
-initialCpuState = CpuState _O16 _O16 _O16
-
-testCpu :: (CpuIn -> State CpuState CpuOut) -> CpuIn -> IO () 
-testCpu cpu cpuIn = pPrint $ runState (cpuMock cpuIn) initialCpuState
-
-runProgram :: (Bit15 -> Bit16) -> CpuState -- State ComputerState CpuState 
-runProgram rom = fst $ runState (go _O15) initialComputerState 
-    where
-        go :: Bit15 -> State ComputerState CpuState
-        go iaddr = do
-            (ComputerState mem cpuS) <- get
-            -- need to get instruction here 
-            let ins = rom iaddr
-            -- either from cpu counter or we keep it elsewhere ...
-            -- or fixpoint for real?
-                cpuOut@((CpuOut _ _ _ pc h), cpuS') = runState (cpuMock (CpuIn _O16 ins O)) cpuS
-            put (ComputerState mem cpuS')
-            case h of
-                I -> return cpuS' -- we could also just return O and run to evaluate the state ...
-                O -> trace (show cpuS') (go pc)
-
-pHalt :: Bit15 -> Bit16
-pHalt _ = _I16 
-
-p1 :: Bit15 -> Bit16
-p1 a = case lookup a rom of
-    Just b -> b
-    Nothing -> _I16 
-    where 
-        rom =
-            [ ((V15 O O O O O O O O O O O O O O O), _O16) 
-            , ((V15 O O O O O O O O O O O O O O I), _O16)
-            , ((V15 O O O O O O O O O O O O O I O), _O16)
-            , ((V15 O O O O O O O O O O O O O I I), _O16)
-            , ((V15 O O O O O O O O O O O O I O O), _O16)
-            , ((V15 O O O O O O O O O O O O I O I), _O16)
-            , ((V15 O O O O O O O O O O O O I I O), _I16)
-            ]
+-- -- symbolic cpu specification
+-- cpuMock :: CpuIn -> State CpuState CpuOut
+-- cpuMock (CpuIn inMem instr _) = do
+--     (CpuState aReg dReg pcReg) <- get
+--     let pcReg' = inc16 pcReg
+--     put (CpuState aReg dReg pcReg')
+--     let pcount = truncateBit16 pcReg' 
+--         output outMem writeMem addrMem halt = return (CpuOut outMem writeMem addrMem pcount halt)  
+--     let (V16 I _ _ a c01 c02 c03 c04 c05 c06 d01 d02 d03 j01 j02 j03) = instr
+--         comp = getSymComp (V7 a c01 c02 c03 c04 c05 c06)
+--         dest = getSymDest (V3 d01 d02 d03)
+--         jump = getSymJump (V3 j01 j02 j03)
+--         undefined
+    
+-- comp :: SymCopm -> State CpuState 
+-- comp c = 
+--     case comp of
+--         C_1 -> undefined
+--         C_0 -> undefined
+--         C_NEG_1 -> undefined
+--         C_A -> undefined
+--         C_D -> undefined
+--         C_NOT_D -> undefined
+--         C_NOT_A -> undefined
+--         C_NEG_D -> undefined
+--         C_NEG_A -> undefined
+--         C_INC_D -> undefined
+--         C_INC_A -> undefined
+--         C_DEC_D -> undefined
+--         C_DEC_A -> undefined
+--         C_ADD_D_A -> undefined
+--         C_SUB_D_A -> undefined
+--         C_SUB_A_D -> undefined
+--         C_AND_D_A -> undefined
+--         C_OR_D_A -> undefined
+--         C_M -> undefined
+--         C_NOT_M -> undefined
+--         C_NEG_M -> undefined
+--         C_INC_M -> undefined
+--         C_DEC_M -> undefined
+--         C_ADD_D_M -> undefined
+--         C_SUB_D_M -> undefined
+--         C_SUB_M_D -> undefined
+--         C_AND_D_M -> undefined
+--         C_OR_D_M -> undefined
+--         C_HALT -> output inMem O (truncateBit16 aReg) I
 
 
+    -- case dest of 
+    --     D_NULL        -- the value is not stored anywhere
+    --     D_M           -- Memory[A] (memory addressed by A)
+    --     D_D
+    --     D_MD
+    --     D_A
+    --     D_AM
+    --     D_AD
+    --     D_AMD
+    -- case jump of
+    --     J_NULL        -- no jump
+    --     J_JGT         -- if alu_out >  0 then jump 
+    --     J_JEQ         -- if alu_out =  0 then jump
+    --     J_JGE         -- if alu_out >= 0 then jump
+    --     J_JLT         -- if alu_out <  0 then jump
+    --     J_JNE         -- if alu_out /= 0 then jump
+    --     J_JLE         -- if alu_out <= 0 then jump
+    --     J_JMP         -- jump
+    -- where
+    --     getSymComp :: Bit7 -> SymComp
+    --     getSymComp = unsafeLookup (commuteLUT symCompBinCompLUT)
+    --     getSymDest :: Bit3 -> SymDest
+    --     getSymDest = unsafeLookup (commuteLUT symDestBinDestLUT)
+    --     getSymJump :: Bit3 -> SymJump
+    --     getSymJump = unsafeLookup (commuteLUT symDestBinDestLUT)
+
+-- cpuIn :: CpuIn
+-- cpuIn = CpuIn _O16 _O16 O    
+
+-- cpuInHalt :: CpuIn
+-- cpuInHalt = CpuIn _O16 _I16 O
+
+-- initialCpuState :: CpuState 
+-- initialCpuState = CpuState _O16 _O16 _O16
+
+-- testCpu :: (CpuIn -> State CpuState CpuOut) -> CpuIn -> IO () 
+-- testCpu cpu cpuIn = pPrint $ runState (cpuMock cpuIn) initialCpuState
+
+-- runProgram :: (Bit15 -> Bit16) -> CpuState -- State ComputerState CpuState 
+-- runProgram rom = fst $ runState (go _O15) initialComputerState 
+--     where
+--         go :: Bit15 -> State ComputerState CpuState
+--         go iaddr = do
+--             (ComputerState mem cpuS) <- get
+--             -- need to get instruction here 
+--             let ins = rom iaddr
+--             -- either from cpu counter or we keep it elsewhere ...
+--             -- or fixpoint for real?
+--                 cpuOut@((CpuOut _ _ _ pc h), cpuS') = runState (cpuMock (CpuIn _O16 ins O)) cpuS
+--             put (ComputerState mem cpuS')
+--             case h of
+--                 I -> return cpuS' -- we could also just return O and run to evaluate the state ...
+--                 O -> trace (show cpuS') (go pc)
+
+-- pHalt :: Bit15 -> Bit16
+-- pHalt _ = _I16 
+
+-- p1 :: Bit15 -> Bit16
+-- p1 a = case lookup a rom of
+--     Just b -> b
+--     Nothing -> _I16 
+--     where 
+--         rom =
+--             [ ((V15 O O O O O O O O O O O O O O O), _O16) 
+--             , ((V15 O O O O O O O O O O O O O O I), _O16)
+--             , ((V15 O O O O O O O O O O O O O I O), _O16)
+--             , ((V15 O O O O O O O O O O O O O I I), _O16)
+--             , ((V15 O O O O O O O O O O O O I O O), _O16)
+--             , ((V15 O O O O O O O O O O O O I O I), _O16)
+--             , ((V15 O O O O O O O O O O O O I I O), _I16)
+--             ]
 
 
--- cpuSymbolic :: CpuIn -> State CpuState CpuOut
--- cpuSymbolic (CpuIn inM instruction reset) = do
---     case reset of
---         I -> do 
---             s <- get
---             put s { _PC = _O16 }
---             return (CpuOut _O16 O _O15 _O15)
---         O -> do 
---             s <- get
---             let pc' = inc16 (_PC s )
---             put s { _PC = pc' }
---             case bit16symInstr instruction of
---                 (SymA (SymValue i)) -> do
---                 -- why is A a 15 bit register? Because we can copy from D ...
---                     let val = padBit15 . unsignedIntToValue $ i
---                     (CpuState _ d pc) <- get
---                     put (CpuState val d pc) 
---                     return undefined --(CpuOut _O16 O _O16 pc')
---                 (SymC sc) -> undefined
+-- padBit15 :: Bit15 -> Bit16
+-- padBit15 (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01) = 
+--     (V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)
 
-padBit15 :: Bit15 -> Bit16
-padBit15 (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01) = 
-    (V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)
+-- truncateBit16 :: Bit16 -> Bit15
+-- truncateBit16 (V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01) =
+--     (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)
 
-truncateBit16 :: Bit16 -> Bit15
-truncateBit16 (V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01) =
-    (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)
-
-data ComputerState = ComputerState {
-       _M :: KByte32
-    , _Cpu :: CpuState 
-    } deriving (Show, Read, Eq)
+-- data ComputerState = ComputerState {
+--        _M :: KByte32
+--     , _Cpu :: CpuState 
+--     } deriving (Show, Read, Eq)
 
 
 -- we need to supply a limit otherwise loops forever ...
@@ -201,31 +241,31 @@ data ComputerState = ComputerState {
 
 -- -------------------------------------------------------------------
 
-initialComputerState :: ComputerState
-initialComputerState = ComputerState _OKByte32 initialCpuState
+-- initialComputerState :: ComputerState
+-- initialComputerState = ComputerState _OKByte32 initialCpuState
 
 
 
-_O15 :: Bit15
-_O15 = V15 O O O O O O O O O O O O O O O
+-- _O15 :: Bit15
+-- _O15 = V15 O O O O O O O O O O O O O O O
 
-_O16 :: Bit16
-_O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
+-- _O16 :: Bit16
+-- _O16 = stringToBit16 "OOOOOOOOOOOOOOOO"
 
-_I16 :: Bit16
-_I16 = stringToBit16 "IIIIIIIIIIIIIIII"
+-- _I16 :: Bit16
+-- _I16 = stringToBit16 "IIIIIIIIIIIIIIII"
 
-_OByte16 :: Byte16
-_OByte16 = replicateV8 _O16
+-- _OByte16 :: Byte16
+-- _OByte16 = replicateV8 _O16
 
-_OByte128 :: Byte128
-_OByte128 = replicateV8 _OByte16
+-- _OByte128 :: Byte128
+-- _OByte128 = replicateV8 _OByte16
 
-_OKByte1 :: KByte1
-_OKByte1 = replicateV8 _OByte128
+-- _OKByte1 :: KByte1
+-- _OKByte1 = replicateV8 _OByte128
 
-_OKByte8 :: KByte8
-_OKByte8 = replicateV8 _OKByte1
+-- _OKByte8 :: KByte8
+-- _OKByte8 = replicateV8 _OKByte1
 
-_OKByte32 :: KByte32
-_OKByte32 = replicateV8 _OKByte8
+-- _OKByte32 :: KByte32
+-- _OKByte32 = replicateV8 _OKByte8

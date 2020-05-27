@@ -4,6 +4,7 @@ import Data.Maybe (catMaybes)
 import Data.List (nub, (\\))
 import Text.Pretty.Simple
 
+import Data.Int(Int16)
 import Vector
 import Logic
 import Arithmetic
@@ -38,7 +39,7 @@ bit16symInstr :: Bit16 -> SymInstr
 bit16symInstr = binInstrSymInstr . bit16binInstr
 
 type Label = String
-type Addr = Int -- should be unsigned int
+type Addr = Int16-- should be unsigned int
 
 symInstrBit16 :: [VarAddr] -> [LabelAddr] -> SymInstr -> Bit16
 symInstrBit16 vas las (SymA si)  = 
@@ -51,7 +52,7 @@ symInstrBit16 _ _ (SymC sc) = symInstrCbit16 sc
 data BinInstrA = BinInstrA Bit15 deriving (Show, Read, Eq) 
 
 data SymInstrA = 
-      SymValue Int 
+      SymValue Int16
     | SymLabel String
     deriving (Show, Read, Eq)
 
@@ -62,7 +63,7 @@ bit16binInstrA (V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a0
 binInstrAsymInstrA :: BinInstrA -> SymInstrA
 binInstrAsymInstrA (BinInstrA a) = SymValue (valueToUnsignedInt a)
 
-valueToUnsignedInt :: Bit15 -> Int
+valueToUnsignedInt :: Bit15 -> Int16
 valueToUnsignedInt (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01) =
     int a15 * 2^14 +
     int a14 * 2^13 +
@@ -84,11 +85,11 @@ valueToUnsignedInt (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 
         int O = 0
 
 -- non-total!
-symInstrAbinInstrA :: (String -> Int) -> SymInstrA -> BinInstrA
+symInstrAbinInstrA :: (String -> Int16) -> SymInstrA -> BinInstrA
 symInstrAbinInstrA f (SymLabel label) = BinInstrA . unsignedIntToValue . f $ label
 symInstrAbinInstrA _ (SymValue i) = BinInstrA (unsignedIntToValue i)
 
-unsignedIntToValue :: Int -> Bit15
+unsignedIntToValue :: Int16-> Bit15
 unsignedIntToValue i = 
     let rs = fmap intToBinary1 . take 15 $ (g i) 
         -- should be the last n elments of the list ...
@@ -96,15 +97,15 @@ unsignedIntToValue i =
         [a15, a14, a13, a12, a11, a10, a09, a08, a07, a06, a05, a04, a03, a02, a01] = fill ++ rs
     in V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01
     where
-        f :: Int -> (Int, Int)
+        f :: Int16-> (Int16, Int16)
         f i = (quot i 2, mod i 2) 
 
-        g :: Int -> [Int]
+        g :: Int16-> [Int16]
         g i = case f i of
             (0, r) -> [r]
             (q, r) -> g q ++ [r]
         
-        intToBinary1 :: Int -> Bit
+        intToBinary1 :: Int16-> Bit
         intToBinary1 0 = O
         intToBinary1 1 = I
 
@@ -112,7 +113,7 @@ binInstrAbit16 :: BinInstrA -> Bit16
 binInstrAbit16 (BinInstrA (V15 a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01)) =
     V16 O a15 a14 a13 a12 a11 a10 a09 a08 a07 a06 a05 a04 a03 a02 a01
 
-symInstrAbit16 :: (String -> Int) -> SymInstrA -> Bit16
+symInstrAbit16 :: (String -> Int16) -> SymInstrA -> Bit16
 symInstrAbit16 f = binInstrAbit16 . symInstrAbinInstrA f 
 
 -- # C Instruction
@@ -167,6 +168,7 @@ data SymComp =
     | C_SUB_M_D
     | C_AND_D_M
     | C_OR_D_M
+    | C_HALT
     | C_RAW Bit7
     deriving (Show, Read, Eq)
 
@@ -221,7 +223,9 @@ symCompBinCompLUT =
     , ( C_SUB_D_M   , binComp I O I O O I I )
     , ( C_SUB_M_D   , binComp I O O O I I I )
     , ( C_AND_D_M   , binComp I O O O O O O )
-    , ( C_OR_D_M    , binComp I O I O I O I )]
+    , ( C_OR_D_M    , binComp I O I O I O I )
+    , ( C_HALT      , binComp I I I I I I I )    
+    ]
 
 binComp :: Bit -> Bit -> Bit -> Bit -> Bit -> Bit -> Bit -> Bit7
 binComp = V7
@@ -293,7 +297,7 @@ unsafeLookup m a = let (Just b) = lookup a m in b
 -- # predefined symbols
 
 -- ## virtual registers
-virtual_registers :: [(String, Int)]
+virtual_registers :: [(String, Int16)]
 virtual_registers = 
     [ ("R0",    0)
     , ("R1",    1)
@@ -314,7 +318,7 @@ virtual_registers =
     ]
 
 -- # predefined pointers
-predefined_pointers :: [(String, Int)]
+predefined_pointers :: [(String, Int16)]
 predefined_pointers =
     [ ("SP",    1)
     , ("LCL",   2)
@@ -325,10 +329,10 @@ predefined_pointers =
 
 -- # IO pointers
 -- (0x4000)
-screen :: (String, Int)
+screen :: (String, Int16)
 screen = ("SCREEN", 0)
 -- (0x6000)
-kbd :: (String, Int)
+kbd :: (String, Int16)
 kbd = ("SCREEN", 0)
 
 -- label symbols
@@ -348,9 +352,9 @@ kbd = ("SCREEN", 0)
 data ASM = ASM (Maybe String) SymInstr
     deriving (Show, Eq)
 
-type LabelAddr = (String, Int)
+type LabelAddr = (String, Int16)
 type Var = String
-type VarAddr = (String, Int)
+type VarAddr = (String, Int16)
 
 getLabelAddresses :: [ASM] -> [LabelAddr]
 getLabelAddresses = go [] 0
